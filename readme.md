@@ -8,16 +8,6 @@ DePass is a dual-enhanced graph learning framework for paired data integration i
 
 
 
-## Table of Contents
-
-- [Installation](#installation)
-- [Requirements](#requirements)
-- [Tutorial](#tutorial)
-- [Data](#data)
-- [Benchmarking](#benchmarking-and-notebooks)
-
----
-
 ## DePass Installation
 
 It is preferred to create a new environment for DePass.
@@ -86,10 +76,15 @@ mclust
 
 ---
 
-## Tutorial, Data
+## Tutorials
 
-Below are quick links to all datasets and step-by-step tutorials used in this project.
+For detailed tutorials, you can refer to the following resources:
 
-- **Tutorial**: [XXX]
-- **Data**: https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link
+- **GitHub Repository**: [DePass Tutorials on GitHub](https://github.com/zhanglabNKU/DePass/tree/main/doc/Tutorials)  
 
+- **Read the Docs**: [DePass Documentation](https://depass-tutorials.readthedocs.io/en/latest/)  
+
+
+## Data
+
+The raw data used in this study is freely available at [Data](https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link)
