@@ -6,6 +6,7 @@ DePass is a dual-enhanced graph learning framework for paired data integration i
 
 ![alt text](image.png)
 
+---
 
 ## Tutorials
 
@@ -16,7 +17,7 @@ For detailed tutorials, you can refer to the following resources:
 - **Read the Docs**: [DePass Documentation](https://depass-tutorials.readthedocs.io/en/latest/)  
 
 
-
+---
 ## DePass Installation
 
 It is preferred to create a new environment for DePass.
