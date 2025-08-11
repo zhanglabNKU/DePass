@@ -5,21 +5,20 @@ from anndata import AnnData
 import scanpy as sc
 from typing import Optional
 
-
 def plot_spatial(  
     adata: AnnData,
-    color: str='DePass',  
+    color: str = 'DePass',  
     save_path: Optional[Union[str, Path]] = None,
     save_name: str = 'spatial_plot',
     title: Optional[str] = None,
     s: int = 35,
     figsize: Tuple[float, float] = (3, 3),
     dpi: int = 300,
-    format: str = "pdf",
-    frameon: bool = False,
+    format: str = "png",
+    frameon: bool = True,
     adjust_margins: bool = True,
     legend_loc: Optional[str] = 'right margin',
-    colorbar_loc: Optional[str] = None, 
+    colorbar_loc: Optional[str] = 'right', 
     show: bool = False,
     **kwargs
 ) -> None:
@@ -28,18 +27,18 @@ def plot_spatial(
 
     Parameters:
         adata (AnnData): Input AnnData object containing spatial data.
-        color (str): Column name in adata.obs for coloring the plot.
-        save_path (Optional[str]): Path to save the figure (default: None).
-        save_name (str): Name of the saved figure.
+        color (str): Column name in adata.obs for coloring the plot (default: 'DePass').
+        save_path (Optional[Union[str, Path]]): Path to save the figure (default: None).
+        save_name (str): Name of the saved figure (default: 'spatial_plot').
         title (Optional[str]): Title of the plot (default: None).
         s (int): Size of the markers (default: 35).
-        figsize (tuple): Figure size (default: (3, 3)).
+        figsize (Tuple[float, float]): Figure size (default: (3, 3)).
         dpi (int): DPI of the saved figure (default: 300).
-        format (str): Format of the saved figure (default: "pdf").
-        frameon (bool): Whether to show the frame (default: False).
+        format (str): Format of the saved figure (default: "png").
+        frameon (bool): Whether to show the frame (default: True).
         adjust_margins (bool): Whether to adjust margins (default: True).
         legend_loc (Optional[str]): Location of the legend (default: 'right margin').
-        colorbar_loc (Optional[str]): Colorbar position. Set to None to disable colorbar.
+        colorbar_loc (Optional[str]): Colorbar position (default: 'right'). Set to None to disable colorbar.
         show (bool): Whether to show the plot (default: False).
         **kwargs: Additional keyword arguments for sc.pl.embedding.
 
@@ -88,6 +87,7 @@ def plot_spatial(
     if save_path is not None:
         output_path = save_path / f"{save_name}.{file_format}"
         try:
+            plt.gca().set_rasterized(True)  
             fig.savefig(
                 output_path,
                 dpi=dpi,
@@ -157,6 +157,7 @@ def rank_genes_groups(
     show: bool = True, 
     save_path: Optional[str] = None,                
     figname: str = 'rank_genes_dotplot',  
+    figsize: Tuple[float, float] = (6, 3),
 ) -> None:
     r"""
     Rank genes by groups and optionally plot the results.
@@ -198,10 +199,11 @@ def rank_genes_groups(
             n_genes=n_genes,
             show=False ,
             dendrogram=False,
+            figsize=figsize,
         )
         if save_path is not None:
            plt.savefig(
-               os.path.join(save_path, figname+".pdf"),
+               os.path.join(save_path, figname+".png"),
                dpi=dpi,
                bbox_inches="tight"  
            )
@@ -239,88 +241,6 @@ def get_logfc(
         
     return float(logfoldchanges[target_group][gene_idx[0]])
 
-
-def plot_marker(
-    adata: sc.AnnData,
-    target_gene: str,
-    save_path: Optional[str] = None,
-    save_name: str = "",
-    show: bool = True,
-    s: int = 80,
-    cmap: str = "viridis",
-    dpi: int = 300,
-    colorbar_loc: Optional[str] = None, 
-    figsize: tuple = (3, 3),
-    frameon=False,
-) -> None:
-    r"""
-    Plot marker comparison between two datasets.
-
-    Parameters:
-        adata (AnnData): AnnData object.
-        target_gene (str): Target gene name.
-        save_path (Optional[str]): Path to save the figure (default: None).
-        save_name (str): Name of the saved figure (default: "gene_comparison").
-        show (bool): Whether to show the plot (default: True).
-        s (int): Size of the markers (default: 80).
-        cmap (str): Colormap (default: "viridis").
-        dpi (int): DPI of the saved figure (default: 300).
-        colorbar_loc (Optional[str]): Colorbar position. Set to None to disable colorbar.
-        figsize (tuple): Figure size (default: (7, 3)).
-        frameon (bool): Whether to show the frame (default: False).
-
-    Returns:
-        None
-    """
-    
-    if 'spatial' not in adata.obsm:
-            raise KeyError(f"Missing spatial coordinates in obsm['spatial']")
-    
-    if save_path is not None:
-        os.makedirs(save_path, exist_ok=True)
-    
-    # Shared visualization parameters
-    vis_params = {
-        'basis': 'spatial',
-        'color': f'{target_gene}_expr',
-        's': s,
-        'frameon': frameon,
-        'colorbar_loc': colorbar_loc,
-        'cmap': cmap,
-    }
-
-    def _scaler_data(adata: sc.AnnData) -> None:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            expr = adata[:, target_gene].X.toarray()
-        adata.obs[f'{target_gene}_expr'] = MinMaxScaler().fit_transform(expr)
-
-    def _create_plot(adata: sc.AnnData, ax: plt.Axes) -> None:
-        sc.pl.embedding(
-            adata,
-            title=f"{target_gene}",
-            ax=ax,
-            show=False,
-            **vis_params
-        )
-
-    
-    _scaler_data(adata)
-    
-    fig, axes = plt.subplots(1, 1, figsize=figsize)
-    _create_plot(adata, axes)
-    
-    if save_path is not None:
-        fig.savefig(
-            os.path.join(save_path, f"{save_name}.pdf"),
-            dpi=dpi,
-            bbox_inches="tight"
-        )
-    if show:
-        plt.show()
-    plt.close(fig)
-
-
 def plot_marker_comparison(
     adata1: sc.AnnData,
     adata2: sc.AnnData,
@@ -329,7 +249,7 @@ def plot_marker_comparison(
     save_name: str = "gene_comparison",
     show: bool = False,
     s: int = 80,
-    cmap: str = "viridis",
+    cmap: str = "turbo",
     dpi: int = 300,
     colorbar_loc: Optional[str] = None, 
     figsize: tuple = (7, 3),
@@ -396,12 +316,16 @@ def plot_marker_comparison(
     _create_plot(adata2, axes[1],'Enhanced - ')
     
     if save_path is not None:
-        # Save combined comparison
-        fig.savefig(
-            os.path.join(save_path, f"{save_name}_combined.pdf"),
+        try:
+            plt.gca().set_rasterized(True)  
+            fig.savefig(
+            os.path.join(save_path, f"{save_name}_combined.png"),
             dpi=dpi,
             bbox_inches="tight"
-        )
+               )
+        except Exception as e:
+            raise IOError(f"Failed to save figure: {e}") from None
+
     if show:
         plt.show()
     plt.close(fig)
@@ -416,7 +340,7 @@ def plot_marker_comparison_with_logFC(
     save_name: str = "gene_comparison",
     show: bool = False,
     s: int = 80,
-    cmap: str = "viridis",
+    cmap: str = "turbo",
     dpi: int = 300,
     colorbar_loc: Optional[str] = None, 
     figsize: tuple = (7, 3),
@@ -483,7 +407,7 @@ def plot_marker_comparison_with_logFC(
     def _create_plot(adata: sc.AnnData, logfc: float, ax: plt.Axes, name:str) -> None:
         sc.pl.embedding(
             adata,
-            title=f"{name+target_gene}\n(logFC={logfc:.3f})",
+            title=f"{name+target_gene}\n(LogFC={logfc:.3f})",
             ax=ax,
             show=False,
             **vis_params
@@ -497,8 +421,9 @@ def plot_marker_comparison_with_logFC(
     _create_plot(adata2, logfc2, axes[1],'Enhanced - ')
     
     if save_path is not None:
+        plt.gca().set_rasterized(True)  # 关键：启用栅格化
         fig.savefig(
-            os.path.join(save_path, f"{save_name}_combined_logFC.pdf"),
+            os.path.join(save_path, f"{save_name}_combined_logFC.png"),
             dpi=dpi,
             bbox_inches="tight"
         )
@@ -506,22 +431,6 @@ def plot_marker_comparison_with_logFC(
         plt.show()
     plt.close(fig)
 
-
-#####  li shared the ways of visualized  ####
-"""
-(1) final_embeddings is a dictionary, and you can input {'s1': embedding_array}.
-(2) data_dict is a data dictionary, and you can input:
-python
-data_dict = {  
-    'RNA': [adata1_rna],  
-    'Protein': [adata1_adt],  
-}  
-(3) This function supports K-means clustering by default, so you can specify n_clusters.
-(4) If you have already obtained clusters using mclust, set mode='defined' and pass your cluster labels in defined_label (should be an array).
-(5) vis_basis refers to the spatial coordinates stored in adata, typically in obsm['spatial']. Note: It is recommended to divide all coordinates 
-by 20 to convert them into a grid format (e.g., 0, 1, 2, 3, 4) rather than keeping them at intervals of 20.
-
-"""
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -716,7 +625,7 @@ def plot_superpixel(
     vis_basis='spatial',  
     colormap=None,
     save_path=None,
-    save_name='cluster_visualization',
+    save_name='visualization',
     title=None,
     figscale=100,
     format='png',
@@ -759,6 +668,7 @@ def plot_superpixel(
    
     labels = adata.obs[label_key].values.astype(int)
     coords = adata.obsm[vis_basis].copy().astype(int)
+    
 
     if swap_xy:
         coords = coords[:, [1, 0]]
@@ -772,31 +682,31 @@ def plot_superpixel(
 
     if colormap is None:
         color_list = [
-    [60, 142, 204],    
-    [187, 187, 187],   
-    [246, 216, 208],   
-    [254, 238, 237],   
-    [215, 102, 102],   
-    [177, 157, 177],   
-    [60, 162, 254],    
-    [151, 215, 243],   
-    [208, 163, 239],   
-    [246, 216, 212],   
-    [255, 247, 180],   
-    [241, 91, 108],    
-    [60, 188, 60],     
-    [104, 220, 104],   
-    [247, 172, 188],   
-    [222, 171, 138],   
-    [255, 188, 188],   
-    [199, 133, 89],    
-    [60, 251, 255],    
-    [195, 236, 255],   
-    [204, 238, 204],   
-    [254, 220, 189],   
-    [239, 91, 156],    
-    [176,224,230],   
-    [187, 187, 187]    
+        [60, 142, 204],    
+        [187, 187, 187],   
+        [246, 216, 208],   
+        [254, 238, 237],   
+        [215, 102, 102],   
+        [177, 157, 177],   
+        [60, 162, 254],    
+        [151, 215, 243],   
+        [208, 163, 239],   
+        [246, 216, 212],   
+        [255, 247, 180],   
+        [241, 91, 108],    
+        [60, 188, 60],     
+        [104, 220, 104],   
+        [247, 172, 188],   
+        [222, 171, 138],   
+        [255, 188, 188],   
+        [199, 133, 89],    
+        [60, 251, 255],    
+        [195, 236, 255],   
+        [204, 238, 204],   
+        [254, 220, 189],   
+        [239, 91, 156],    
+        [176,224,230],    
+        [220,220,220]
 ]
     elif isinstance(colormap, list):
         color_list = colormap
@@ -806,6 +716,8 @@ def plot_superpixel(
 
     if len(color_list) < num_clusters:
         raise ValueError("Color list is not long enough to cover all clusters.")
+    
+    
 
     max_y, max_x = coords.max(axis=0) + 1
     image = np.full((max_y, max_x), fill_value=-1, dtype=int)
@@ -818,18 +730,24 @@ def plot_superpixel(
     if invert_y:
         image = image[::-1, :]
 
-    image_rgb = 255 * np.ones([image.shape[0], image.shape[1], 3])
-    for cluster in range(num_clusters):
-        image_rgb[image == cluster] = color_list[cluster]
-    image_rgb = np.array(image_rgb, dtype='uint8')
 
+    image_rgb = np.ones([image.shape[0], image.shape[1], 3])
+    for cluster in range(num_clusters):
+        image_rgb[image == cluster] = np.array(color_list[cluster]) / 255.0
+    
+    # image_rgb = 255 * np.ones([image.shape[0], image.shape[1], 3])
+    # for cluster in range(num_clusters):
+    #     image_rgb[image == cluster] = color_list[cluster]
+    # image_rgb = np.array(image_rgb, dtype='uint8')
     
     plt.figure(figsize=(image.shape[1] // figscale, image.shape[0] // figscale))
+    plt.imshow(image_rgb, interpolation='none')
+
     if remove_title or title is None:
         plt.title("")
     else:
         plt.title(title, fontsize=18)
-    plt.imshow(image_rgb, interpolation='none')
+
     ax = plt.gca()
     ax.set_xticks([])
     ax.set_yticks([])
@@ -850,8 +768,9 @@ def plot_superpixel(
     if save_path:
         os.makedirs(save_path, exist_ok=True)
         file_path = os.path.join(save_path, f"{save_name}.{format}")
-        plt.savefig(file_path, dpi=dpi, bbox_inches="tight", format=format)
+        plt.savefig(file_path, dpi=dpi, bbox_inches="tight")
         print(f"Image saved to: {file_path}")
+
 
     if show:
         plt.show()
@@ -916,7 +835,8 @@ def plot_marker_comparison_superpixel(
     remove_title: bool = False,     
     remove_spine: bool = False,    
     remove_legend: bool = False,      
-    save_path: str = None
+    save_path: str = None,
+    format: str = 'pdf'
 ):
 
 
@@ -947,13 +867,10 @@ def plot_marker_comparison_superpixel(
             cbar = fig.colorbar(im, ax=ax, shrink=0.7, pad=0.02)  
 
     if save_path:
-        base, ext = os.path.splitext(save_path)
-        if not ext:
-            ext = ".png"
-        save_path = base + ext
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        os.makedirs(save_path, exist_ok=True)
+        file_path = os.path.join(save_path, f"{molecule_name+'_combined'}.{format}")
+        plt.savefig(file_path, dpi=dpi, bbox_inches="tight")
         print(f"Saving marker comparison to: {save_path}")
-        plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
 
     plt.show()
     plt.close()
@@ -1168,7 +1085,7 @@ def plot_modality_weights(
         y='Weight',
         hue='Modality',
         inner="quart",
-        linewidth=0.5,
+        linewidth=0.6,
         palette=palette,
         **kwargs
     )
@@ -1190,7 +1107,7 @@ def plot_modality_weights(
     if save_path:
         os.makedirs(save_path, exist_ok=True)
         plt.savefig(
-            os.path.join(save_path, f"{save_name}.pdf"),
+            os.path.join(save_path, f"{save_name}.png"),
             dpi=300,
             bbox_inches="tight",
             transparent=True
@@ -1200,76 +1117,6 @@ def plot_modality_weights(
     plt.close()
 
     return ax
-
-
-def noise(adata_omics1, adata_omics2, level):
-    r"""
-    Add noise to omics data.
-
-    Parameters:
-        adata_omics1 (AnnData): First AnnData object.
-        adata_omics2 (AnnData): Second AnnData object.
-        level (float): Noise level.
-
-    Returns:
-        tuple: Noisy omics data.
-    """
-    from scipy import stats
-    noise1 = stats.norm.rvs(loc=0, scale=level, size=adata_omics1.obsm['X_norm'].shape)
-    noise2 = stats.norm.rvs(loc=0, scale=level, size=adata_omics2.obsm['X_clr'].shape)
-
-    return adata_omics1.obsm['X_norm'] + noise1, adata_omics2.obsm['X_clr'] + noise2
-
-
-def Generate_masked_data(adata_omics1,adata_omics2,mask_ratio):
-    r"""
-    Generate masked data.
-
-    Parameters:
-        mask_ratio (float): Masking ratio.
-
-    Returns:
-        tuple: Masked data.
-    """
-    import numpy as np
-    from scipy import sparse
-    import scanpy as sc
-    from DePass.utils import preprocess_data
-
-    adata_omics1.var_names_make_unique()
-    adata_omics2.var_names_make_unique()
-
-    def mask(adata, ratio):
-        X = adata.X.copy()  
-
-        if sparse.issparse(X):
-            nonzero_positions = X.nonzero()
-        else:
-            nonzero_positions = np.nonzero(X)
-
-        num_to_mask = int(ratio * len(nonzero_positions[0]))
-        mask_indices = np.random.choice(len(nonzero_positions[0]), num_to_mask, replace=False)
-        
-        if sparse.issparse(X):
-            X[(nonzero_positions[0][mask_indices], nonzero_positions[1][mask_indices])] = 0
-        else:
-            X[nonzero_positions[0][mask_indices], nonzero_positions[1][mask_indices]] = 0
-
-        adata.X = X
-        return adata
-
-    sc.pp.filter_genes(adata_omics1, min_cells=adata_omics1.shape[0] * 0.01)
-    sc.pp.highly_variable_genes(adata_omics1, flavor="seurat_v3", n_top_genes=1000)
-    adata_omics1 = adata_omics1[:, adata_omics1.var['highly_variable']]
-    adata_omics1 = mask(adata_omics1, mask_ratio)
-    sc.pp.normalize_total(adata_omics1, target_sum=1e4)
-    sc.pp.log1p(adata_omics1)
-    sc.pp.scale(adata_omics1)
-
-    adata_omics2 = mask(adata_omics2, mask_ratio)
-    preprocess_data(adata_omics2, modality='protein')
-    return adata_omics1.X, adata_omics2.X
-
 
 import scanpy as sc
 import pandas as pd

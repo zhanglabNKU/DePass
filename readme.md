@@ -39,7 +39,7 @@ Installation via Github is also provided:
 ```bash
 git clone https://github.com/zhanglabNKU/DePass.git
 cd DePass
-pip install depass-0.0.16-py3-none-any.whl
+pip install depass-0.0.20-py3-none-any.whl
 ```
 
 Additionally, because DePass leverages mclust for clustering, installing R, the rpy2 Python interface, and the mclust R package is recommended.

@@ -166,7 +166,7 @@ class DePass:
         adj2_norm = normalize_adj(adj2).to(self.device)
         adj_shared_norm = normalize_adj(adj_shared).to(self.device)
     
-        if self.sub_graph_size:
+        if self.batch_training:
             print('')
             undirected_geo = to_undirected_geo_data(adj_shared,node_index=torch.arange(adj_shared.shape[0]))
             cluster_data = ClusterData(undirected_geo, num_parts=int(np.ceil(undirected_geo.num_nodes / self.sub_graph_size)) * 4,
