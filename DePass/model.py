@@ -30,26 +30,60 @@ class DePass:
                  K_spatial: int = 5,
                  K_feature: int = 20,
                  ):
-        
-        r"""
-        Initialize the DePass model.
-
-        Args:
-            data: dict: Input data dictionary containing multiple modality data.
-            data_type: str='spatial': Data type, which can be 'spatial' or 'single_cell'.
-            device: torch.device=torch.device('cpu'): Computing device.
-            learning_rate: float=2e-4: Learning rate.
-            epochs: int=200: Total number of training epochs.
-            batch_training: bool=False: Whether to use batch training.
-            sub_graph_size: int=1024: sub graph size for batch training.
-            updata_step: int=25: Update step.
-            mlpLayer1: list=[256, 64]: Structure of the first MLP layer.
-            mlpLayer2: list=[256, 64]: Structure of the second MLP layer.
-            mlpLayer3: list=[256, 64]: Structure of the third MLP layer.
-            dim: int=64: Embedding dimension.
-            K_spatial: int=5: Number of neighbors for the spatial KNN graph.
-            K_feature: int=20: Number of neighbors for the feature KNN graph.
         """
+        Initialize the DePass model for multi-omics integration.
+
+        This class implements DePass, a deep learning framework for integrating
+        spatial or single-cell multi-modal data (e.g., RNA, protein, spatial coordinates). 
+      
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary mapping modality names (e.g., ``"RNA"``, ``"Protein"``) 
+            to their corresponding AnnData objects. Each AnnData must contain 
+            modality-specific features in ``.obsm['input_feat']``.
+        data_type : str, default='spatial'
+            Type of dataset. Must be either:
+            - ``'spatial'`` : for spatial transcriptomics data (requires ``adata.obsm['spatial']``).
+            - ``'single_cell'`` : for scRNA-seq or other single-cell modalities.
+        device : torch.device, default=torch.device('cpu')
+            Torch device used for training (CPU or CUDA GPU).
+        learning_rate : float, default=2e-4
+            Learning rate for the optimizer.
+        epochs : int, default=200
+            Total number of training epochs.
+        batch_training : bool, default=False
+            Whether to use batch-based training instead of full-graph training.
+        sub_graph_size : int, default=1024
+            Subgraph size when ``batch_training=True``.
+        updata_step : int, default=25
+            Number of update steps.
+        mlpLayer1 : list of int, default=[256, 64]
+            Hidden layer dimensions of the first MLP encoder (for omics 1).
+        mlpLayer2 : list of int, default=[256, 64]
+            Hidden layer dimensions of the second MLP encoder (for omics 2).
+        mlpLayer3 : list of int, default=[256, 64]
+            Hidden layer dimensions of the third MLP encoder (for omics 3, if provided).
+        dim : int, default=64
+            Dimension of the shared embedding space.
+        K_spatial : int, default=5
+            Number of neighbors in the spatial KNN graph (only for ``data_type='spatial'``).
+        K_feature : int, default=20
+            Number of neighbors in the feature-based KNN graph.
+
+        Raises
+        ------
+        ValueError
+            If ``data_type`` is not in ``['spatial', 'single_cell']``.
+        ValueError
+            If ``'spatial'`` key is missing in AnnData objects when ``data_type='spatial'``.
+
+        Notes
+        -----
+        - Prints configuration summary upon initialization.
+        """
+
         self.data = data.copy()
         self.data_type = data_type
         self.device = device
@@ -64,12 +98,8 @@ class DePass:
         self.dim = dim
         self.K_spatial = K_spatial
         self.K_feature = K_feature
-
         self.n_views = len(self.data)
 
-        # if self.n_views not in [2, 3]:
-        #     raise ValueError("The number of input modalities is more than 3. We suggest integrating 2 or 3 at a time, but got {}".format(self.n_views))
-       
         if self.data_type not in ['spatial', 'single_cell']:
             raise ValueError("The data type must be 'spatial' or 'single_cell', but got {}".format(self.data_type))
         

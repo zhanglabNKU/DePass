@@ -3,7 +3,13 @@ from typing import Optional, Union, Tuple, List
 import matplotlib.pyplot as plt
 from anndata import AnnData
 import scanpy as sc
-from typing import Optional
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+import os
+import seaborn as sns
+import warnings
+
 
 def plot_spatial(  
     adata: AnnData,
@@ -22,28 +28,46 @@ def plot_spatial(
     show: bool = False,
     **kwargs
 ) -> None:
-    r"""
-    Plot spatial data with specified parameters and save the figure.
+    """
+    Plot spatial data using `scanpy.pl.embedding`.
 
-    Parameters:
-        adata (AnnData): Input AnnData object containing spatial data.
-        color (str): Column name in adata.obs for coloring the plot (default: 'DePass').
-        save_path (Optional[Union[str, Path]]): Path to save the figure (default: None).
-        save_name (str): Name of the saved figure (default: 'spatial_plot').
-        title (Optional[str]): Title of the plot (default: None).
-        s (int): Size of the markers (default: 35).
-        figsize (Tuple[float, float]): Figure size (default: (3, 3)).
-        dpi (int): DPI of the saved figure (default: 300).
-        format (str): Format of the saved figure (default: "png").
-        frameon (bool): Whether to show the frame (default: True).
-        adjust_margins (bool): Whether to adjust margins (default: True).
-        legend_loc (Optional[str]): Location of the legend (default: 'right margin').
-        colorbar_loc (Optional[str]): Colorbar position (default: 'right'). Set to None to disable colorbar.
-        show (bool): Whether to show the plot (default: False).
-        **kwargs: Additional keyword arguments for sc.pl.embedding.
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix containing spatial coordinates in `adata.obsm['spatial']`.
+    color : str, default="DePass"
+        Column name in `adata.obs` or gene name to color the plot.
+    save_path : str or Path, optional
+        Directory where the figure will be saved. If None, the figure is not saved.
+    save_name : str, default="spatial_plot"
+        Filename (without extension) for saving the plot.
+    title : str, optional
+        Title of the plot. If None, defaults to the `color` argument.
+    s : int, default=35
+        Marker size.
+    figsize : tuple of float, default=(3, 3)
+        Figure size in inches.
+    dpi : int, default=300
+        Resolution of the saved figure.
+    format : {"png", "pdf", "svg", "tiff", "jpg", "jpeg"}, default="png"
+        Output file format.
+    frameon : bool, default=True
+        Whether to show a frame around the plot.
+    adjust_margins : bool, default=True
+        Whether to tighten layout by adjusting margins.
+    legend_loc : str or None, default="right margin"
+        Position of the legend. Set to None to disable.
+    colorbar_loc : str or None, default="right"
+        Position of the colorbar. Set to None to disable.
+    show : bool, default=False
+        Whether to display the plot interactively.
+    **kwargs
+        Additional arguments passed to `scanpy.pl.embedding`.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
+        The function generates a spatial plot and optionally saves it.
     """
 
     if not isinstance(adata, AnnData):
@@ -102,8 +126,6 @@ def plot_spatial(
     
     plt.close(fig)
 
-import pandas as pd
-import numpy as np
 
 def getLogFC(
     target_genes: list,
@@ -111,38 +133,49 @@ def getLogFC(
     logfoldchanges: dict,
     gene_names: dict
 ) -> pd.DataFrame:
-    r"""
-    Get log fold changes for target genes and groups.
-
-    Parameters:
-        target_genes (list): List of target genes.
-        target_groups (list): List of target groups.
-        logfoldchanges (dict): Dictionary of log fold changes.
-        gene_names (dict): Dictionary of gene names.
-
-    Returns:
-        pd.DataFrame: DataFrame containing log fold changes for target genes and groups.
     """
-    
+    Extract log fold changes (LogFC) for a list of target genes in specific groups.
+
+    Parameters
+    ----------
+    target_genes : list of str
+        List of gene names of interest.
+    target_groups : list of str
+        List of groups corresponding to each target gene.
+    logfoldchanges : dict
+        Dictionary mapping each group to an array of log fold change values.
+    gene_names : dict
+        Dictionary mapping each group to an array of gene names.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns:
+        - "Gene": Gene name
+        - "Group": Group name
+        - "LogFC": Log fold change value (or None if not found)
+
+    Raises
+    ------
+    ValueError
+        If the lengths of `target_genes` and `target_groups` do not match.
+    """
+
     if len(target_genes) != len(target_groups):
         raise ValueError("Lengths of `target_genes` and `target_groups` must match.")
 
     results = []
     for gene, group in zip(target_genes, target_groups):
-        # Extract gene names for the current group
         group_genes = gene_names[group]
-        # Find index of the target gene in the group's gene list
         gene_idx = np.where(group_genes == gene)[0]
         
         if len(gene_idx) == 0:
             print(f"Warning: Gene '{gene}' not found in group '{group}'.")
-            results.append((gene, group, None))  # Store None if gene is missing
+            results.append((gene, group, None))  
         else:
-            # Get the first matching LogFC value (assumes unique gene names per group)
             logfc = logfoldchanges[group][gene_idx[0]]
             results.append((gene, group, logfc))
     
-    # Convert results to a structured DataFrame
     results_df = pd.DataFrame(results, columns=["Gene", "Group", "LogFC"])
     return results_df
 
@@ -159,27 +192,40 @@ def rank_genes_groups(
     figname: str = 'rank_genes_dotplot',  
     figsize: Tuple[float, float] = (6, 3),
 ) -> None:
-    r"""
-    Rank genes by groups and optionally plot the results.
+    """
+    Perform differential expression analysis and visualize ranked genes.
 
-    Parameters:
-        adata (AnnData): Input AnnData object.
-        groupby (str): Column name in adata.obs for grouping (default: "DePass").
-        method (str): Method for ranking genes (default: "wilcoxon").
-        n_genes (int): Number of top genes to show (default: 10).
-        standard_scale (str): Scaling method (default: "var").
-        dpi (int): DPI of the saved figure (default: 300).
-        show (bool): Whether to show the results (default: True).
-        save_path (Optional[str]): Path to save the figure (default: None).
-        figname (str): Name of the saved figure (default: 'rank_genes_dotplot').
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix.
+    groupby : str, default="DePass"
+        Column in `adata.obs` used for grouping cells.
+    method : str, default="wilcoxon"
+        Statistical test method. Options are supported by Scanpy.
+    n_genes : int, default=10
+        Number of top genes to display per group.
+    standard_scale : {"var", "group"}, default="var"
+        Whether to standardize by variable or group.
+    dpi : int, default=300
+        Resolution of the output figure.
+    show : bool, default=True
+        Whether to display the plot.
+    save_path : str, optional
+        Directory to save the plot. If None, the plot is not saved.
+    figname : str, default="rank_genes_dotplot"
+        Filename (without extension) for saving.
+    figsize : tuple of float, default=(6, 3)
+        Figure size in inches.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
+        The function runs DE analysis, produces a dot plot, and optionally saves it.
     """
     
     from sklearn.preprocessing import MinMaxScaler
-    import matplotlib.pyplot as plt
-     
+
     if save_path is not None:
         os.makedirs(save_path, exist_ok=True)
 
@@ -188,7 +234,7 @@ def rank_genes_groups(
     adata.obs[groupby] = adata.obs[groupby].astype('str').astype('category')  # Ensure categorical type
     adata.X = scaler.fit_transform(adata.X) 
     
-    # Perform differential expression analysis
+
     sc.tl.rank_genes_groups(adata, groupby=groupby, method=method, use_raw=False)
 
     if show or save_path is not None:
@@ -212,27 +258,43 @@ def rank_genes_groups(
         plt.close()
 
  
-from typing import Optional
-import numpy as np
-import matplotlib.pyplot as plt
-import scanpy as sc
-from sklearn.preprocessing import MinMaxScaler
-import os
-import warnings
+
 
 def get_logfc(
     target_gene: str,
     target_group: str,
-    logfoldchanges: np.ndarray,  # Structured array from rank_genes_groups
-    gene_names: np.ndarray,      # Structured array from rank_genes_groups
+    logfoldchanges: np.ndarray,  
+    gene_names: np.ndarray,     
 ) -> float:
+    """
+    Retrieve log fold change for a specific gene in a target group.
+
+    Parameters
+    ----------
+    target_gene : str
+        Gene of interest.
+    target_group : str
+        Group of interest.
+    logfoldchanges : np.ndarray
+        Structured array of log fold changes from `rank_genes_groups`.
+    gene_names : np.ndarray
+        Structured array of gene names from `rank_genes_groups`.
+
+    Returns
+    -------
+    float
+        Log fold change value for the specified gene in the target group.
+
+    Raises
+    ------
+    KeyError
+        If the group or gene is not found.
+    """
    
-    # Validate group existence
     if target_group not in gene_names.dtype.names:
         available_groups = list(gene_names.dtype.names)
         raise KeyError(f"Group '{target_group}' not found. Available groups: {available_groups}")
     
-    # Locate gene index
     group_genes = gene_names[target_group]
     gene_idx = np.flatnonzero(group_genes == target_gene)
     
@@ -255,25 +317,32 @@ def plot_marker_comparison(
     figsize: tuple = (7, 3),
     frameon=False,
 ) -> None:
-    r"""
-    Plot marker comparison between two datasets.
+    """
+    Plot expression of selected marker genes across groups using a dot plot.
 
-    Parameters:
-        adata1 (AnnData): First AnnData object.
-        adata2 (AnnData): Second AnnData object.
-        target_gene (str): Target gene name.
-        save_path (Optional[str]): Path to save the figure (default: None).
-        save_name (str): Name of the saved figure (default: "gene_comparison").
-        show (bool): Whether to show the plot (default: False).
-        s (int): Size of the markers (default: 80).
-        cmap (str): Colormap (default: "viridis").
-        dpi (int): DPI of the saved figure (default: 300).
-        colorbar_loc (Optional[str]): Colorbar position. Set to None to disable colorbar.
-        figsize (tuple): Figure size (default: (7, 3)).
-        frameon (bool): Whether to show the frame (default: False).
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix.
+    markers : list of str
+        List of marker genes to plot.
+    groupby : str, default="DePass"
+        Column in `adata.obs` used for grouping cells.
+    dpi : int, default=300
+        Resolution of the figure.
+    show : bool, default=True
+        Whether to display the plot.
+    save_path : str, optional
+        Directory where the figure will be saved. If None, the figure is not saved.
+    figname : str, default="marker_comparison_dotplot"
+        Filename (without extension) for saving.
+    figsize : tuple of float, default=(6, 3)
+        Figure size in inches.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
+        The function generates a dot plot and optionally saves it.
     """
     
     for adata, name in [(adata1, 'adata1'), (adata2, 'adata2')]:
@@ -346,26 +415,50 @@ def plot_marker_comparison_with_logFC(
     figsize: tuple = (7, 3),
     frameon=False,
 ) -> None:
-    r"""
-    Visualize marker comparison between two datasets with log fold changes.
+    """
+    Compare spatial expression of a target gene between two datasets,
+    displaying log fold change (logFC) values from differential expression results.
 
-    Parameters:
-        adata1 (AnnData): First AnnData object.
-        adata2 (AnnData): Second AnnData object.
-        target_gene (str): Target gene name.
-        target_group (str): Target group name.
-        save_path (Optional[str]): Path to save the figure (default: None).
-        save_name (str): Name of the saved figure (default: "gene_comparison").
-        show (bool): Whether to show the plot (default: False).
-        s (int): Size of the markers (default: 80).
-        cmap (str): Colormap (default: "viridis").
-        dpi (int): DPI of the saved figure (default: 300).
-        colorbar_loc (Optional[str]): Colorbar position. Set to None to disable colorbar.
-        figsize (tuple): Figure size (default: (7, 3)).
-        frameon (bool): Whether to show the frame (default: False).
+    The function extracts logFC for the given `target_gene` in the specified 
+    `target_group` from both datasets, rescales expression values for visualization, 
+    and plots spatial embeddings side-by-side (e.g., raw vs enhanced).
 
-    Returns:
-        None
+    Parameters
+    ----------
+    adata1 : AnnData
+        First annotated data matrix (e.g., raw data). Must contain:
+        - `adata1.uns['rank_genes_groups']` with DE results
+        - `adata1.obsm['spatial']` with spatial coordinates.
+    adata2 : AnnData
+        Second annotated data matrix (e.g., enhanced data). Same requirements as `adata1`.
+    target_gene : str
+        Gene of interest to visualize.
+    target_group : str
+        Group/cluster in which the logFC of `target_gene` is extracted.
+    save_path : str, optional
+        Directory to save the figure. If None, the figure is not saved.
+    save_name : str, default="gene_comparison"
+        Filename (without extension) for saving.
+    show : bool, default=False
+        Whether to display the plots interactively.
+    s : int, default=80
+        Dot size for the scatter plot.
+    cmap : str, default="turbo"
+        Colormap used for gene expression visualization.
+    dpi : int, default=300
+        Resolution of the saved figure.
+    colorbar_loc : str, optional
+        Location of the colorbar. If None, no colorbar is shown.
+    figsize : tuple of float, default=(7, 3)
+        Figure size in inches.
+    frameon : bool, default=False
+        Whether to draw a frame around the embedding.
+
+    Returns
+    -------
+    None
+        The function generates side-by-side spatial plots of the target gene in both datasets,
+        annotated with logFC values, and optionally saves them.
     """
     
     for adata, name in [(adata1, 'adata1'), (adata2, 'adata2')]:
@@ -387,8 +480,7 @@ def plot_marker_comparison_with_logFC(
     
     if save_path is not None:
         os.makedirs(save_path, exist_ok=True)
-    
-    # Shared visualization parameters
+
     vis_params = {
         'basis': 'spatial',
         'color': f'{target_gene}_expr',
@@ -421,7 +513,7 @@ def plot_marker_comparison_with_logFC(
     _create_plot(adata2, logfc2, axes[1],'Enhanced - ')
     
     if save_path is not None:
-        plt.gca().set_rasterized(True)  # 关键：启用栅格化
+        plt.gca().set_rasterized(True)
         fig.savefig(
             os.path.join(save_path, f"{save_name}_combined_logFC.png"),
             dpi=dpi,
@@ -431,20 +523,19 @@ def plot_marker_comparison_with_logFC(
         plt.show()
     plt.close(fig)
 
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import os
+
+
+
 import matplotlib.cm as cm
 from matplotlib.colors import to_rgb
 import matplotlib.patches as patches
 
-# cluster visualization
+
 def cluster_and_visualize_superpixel(
     final_embeddings,
     data_dict,
     n_clusters,
-    mode="joint",  # 'joint' or 'independent'
+    mode="joint",  
     defined_labels=None,
     vis_basis="spatial",
     random_state=0,
@@ -460,12 +551,69 @@ def cluster_and_visualize_superpixel(
     remove_spine = False,
     figscale = 35
 ):
-    import numpy as np
+    """
+    Cluster superpixel embeddings and visualize results on histology sections.
+
+    This function takes precomputed embeddings of superpixels (`final_embeddings`), 
+    aligns them with corresponding spatial coordinates from `data_dict`, performs clustering, 
+    and visualizes each section as a cluster-labeled image.
+
+    Parameters
+    ----------
+    final_embeddings : dict of {str: np.ndarray}
+        Dictionary mapping section IDs (e.g., "S1", "S2") to superpixel embeddings.
+    data_dict : dict of {str: list of AnnData or None}
+        Dictionary mapping modality names to lists of AnnData objects per section.
+        Used to extract spatial coordinates (`adata.obsm[vis_basis]`).
+    n_clusters : int
+        Number of clusters for KMeans.
+    mode : {"joint", "independent", "defined"}, default="joint"
+        - "joint" : Perform KMeans clustering jointly on all embeddings.  
+        - "independent" : Cluster each section separately.  
+        - "defined" : Use externally provided cluster labels (`defined_labels`).  
+    defined_labels : dict of {str: np.ndarray}, optional
+        Predefined cluster labels for each section. Required if `mode="defined"`.
+    vis_basis : str, default="spatial"
+        Key in `adata.obsm` containing spatial coordinates for visualization.
+    random_state : int, default=0
+        Random seed for KMeans clustering.
+    colormap : matplotlib colormap, optional
+        Colormap for cluster visualization.
+    swap_xy : bool, default=False
+        If True, swap x and y coordinates.
+    invert_x : bool, default=False
+        If True, flip the image horizontally.
+    invert_y : bool, default=False
+        If True, flip the image vertically.
+    offset : bool, default=False
+        If True, shift coordinates so that the minimum is at (0, 0).
+    save_path : str, optional
+        Path to save the visualization images.  
+        For each section, the filename will be suffixed with `_section_<ID>`.  
+        If None, plots are not saved.
+    dpi : int, default=300
+        Resolution of the saved figures.
+    remove_title : bool, default=False
+        Whether to remove the figure title.
+    remove_legend : bool, default=False
+        Whether to hide the legend in plots.
+    remove_spine : bool, default=False
+        Whether to remove the axes spines.
+    figscale : int, default=35
+        Scaling factor for figure size.
+
+    Returns
+    -------
+    dict of {str: np.ndarray}
+        Cluster labels per section. Keys are section IDs, values are arrays of cluster assignments.
+
+    Raises
+    ------
+    ValueError
+        If `mode="defined"` but `defined_labels` is not provided.
+    """
+
     from sklearn.cluster import KMeans
-    import os
-    import numpy as np
-
-
     adata_list = []
     embeddings = []
     coords_all = []
@@ -537,7 +685,7 @@ def cluster_and_visualize_superpixel(
             figscale = figscale,
             remove_title = remove_title,
             remove_legend = remove_legend,
-            remove_spine=remove_legend, 
+            remove_spine=remove_spine, 
         )
 
     return cluster_labels
@@ -554,6 +702,40 @@ def plot_histology_clusters(he_clusters_image,
                             remove_legend = False,
                             remove_spine=False, 
                             dpi=300):
+    """
+    Visualize clustered histology image with color-coded clusters.
+
+    Parameters
+    ----------
+    he_clusters_image : ndarray of shape (H, W)
+        2D array containing cluster labels for each pixel. Values should be in
+        the range [0, num_he_clusters - 1].
+    num_he_clusters : int
+        Number of unique clusters.
+    section_title : str, optional
+        Title for the figure. If None, defaults to "Histology Clusters".
+    colormap : list or str, optional
+        - If None: use a predefined color list.  
+        - If list: custom list of RGB colors (0–255) for each cluster.  
+        - If str: name of a Matplotlib colormap.
+    save_path : str, optional
+        Path to save the figure. If None, the plot is not saved.
+    figscale : int, default=35
+        Scaling factor for figure size (smaller = larger figure).
+    remove_title : bool, default=False
+        Whether to hide the plot title.
+    remove_legend : bool, default=False
+        Whether to hide the cluster legend.
+    remove_spine : bool, default=False
+        Whether to hide the axis spines.
+    dpi : int, default=300
+        Resolution of the saved figure.
+
+    Returns
+    -------
+    None
+        Displays the histology cluster image and optionally saves it.
+    """
 
 
     if colormap is None:
@@ -610,14 +792,10 @@ def plot_histology_clusters(he_clusters_image,
     plt.show()
     # plt.close()
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+
 import matplotlib.cm as cm
 from matplotlib.colors import to_rgb
 import matplotlib.patches as patches
-import os
-
 
 def plot_superpixel(
     adata,
@@ -640,27 +818,58 @@ def plot_superpixel(
     invert_y=False  
 ):
     """
-    Visualize clusters using labels and spatial coordinates from adata.
+    Visualize superpixel clusters using labels and spatial coordinates.
 
-    Parameters:
-        adata: AnnData object containing cell data and cluster labels.
-        label_key: Key for cluster labels in adata.obs.
-        vis_basis: Key for coordinates in adata.obsm.
-        colormap: Custom color mapping.
-        save_path: Directory path to save the image.
-        save_name: File name to save the image.
-        title: Title of the plot.
-        figscale: Figure size scaling factor.
-        format: Format to save the image (e.g., 'pdf', 'png').
-        show: Whether to display the plot.
-        remove_title: Whether to remove the title.
-        remove_legend: Whether to remove the legend.
-        remove_spine: Whether to remove the border.
-        dpi: Image resolution.
-        random_state: Random seed for reproducibility.
-        swap_xy: Whether to swap x and y coordinates.
-        invert_x: Whether to invert x-axis.
-        invert_y: Whether to invert y-axis.
+    This function extracts cluster labels from `adata.obs` and spatial coordinates 
+    from `adata.obsm`, reconstructs a 2D image of cluster assignments, and 
+    visualizes it with color-coded clusters.
+
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix containing superpixel labels in `.obs` 
+        and spatial coordinates in `.obsm`.
+    label_key : str, default="label"
+        Key in `adata.obs` containing cluster labels.
+    vis_basis : str, default="spatial"
+        Key in `adata.obsm` containing spatial coordinates.
+    colormap : list or str, optional
+        - If None: use a predefined color palette.  
+        - If list: custom list of RGB colors (0–255).  
+        - If str: name of a Matplotlib colormap.
+    save_path : str, optional
+        Directory to save the visualization. If None, the plot is not saved.
+    save_name : str, default="visualization"
+        Base filename (without extension) for saving the figure.
+    title : str, optional
+        Title of the plot. If None, no title is shown unless `remove_title=False`.
+    figscale : int, default=100
+        Scaling factor for figure size (smaller = larger figure).
+    format : {"png", "pdf", ...}, default="png"
+        Output format for saving the figure.
+    show : bool, default=True
+        Whether to display the plot interactively.
+    remove_title : bool, default=False
+        Whether to hide the plot title.
+    remove_legend : bool, default=False
+        Whether to hide the cluster legend.
+    remove_spine : bool, default=False
+        Whether to hide the axis spines.
+    dpi : int, default=300
+        Resolution of the saved figure.
+    random_state : int, default=2024
+        Random seed for reproducibility.
+    swap_xy : bool, default=False
+        If True, swap x and y coordinates.
+    invert_x : bool, default=False
+        If True, flip the image horizontally.
+    invert_y : bool, default=False
+        If True, flip the image vertically.
+
+    Returns
+    -------
+    None
+        Displays the reconstructed cluster map and optionally saves it.
     """
    
     np.random.seed(random_state)
@@ -716,7 +925,6 @@ def plot_superpixel(
 
     if len(color_list) < num_clusters:
         raise ValueError("Color list is not long enough to cover all clusters.")
-    
     
 
     max_y, max_x = coords.max(axis=0) + 1
@@ -780,6 +988,34 @@ def plot_superpixel(
 
 # marker visualization
 def prepare_image(adata, molecule_name, basis, swap_xy, invert_x, invert_y, offset, scale):
+    """
+    Convert molecule expression values into a 2D image based on spatial coordinates.
+
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix containing molecule expression and coordinates.
+    molecule_name : str
+        Name of the molecule (gene or feature) to visualize.
+    basis : str
+        Key in `adata.obsm` containing spatial coordinates.
+    swap_xy : bool
+        If True, swap x and y coordinates.
+    invert_x : bool
+        If True, flip the image horizontally.
+    invert_y : bool
+        If True, flip the image vertically.
+    offset : bool
+        If True, shift coordinates so that the minimum is at (0, 0).
+    scale : bool
+        If True, scale expression values to [0, 1] using MinMaxScaler.
+
+    Returns
+    -------
+    np.ndarray of shape (H, W)
+        2D array where pixel intensities represent molecule expression.
+        Empty positions are filled with NaN.
+    """
     coords = adata.obsm[basis].copy()
     if swap_xy:
         coords = coords[:, [1, 0]]
@@ -816,6 +1052,7 @@ def prepare_image(adata, molecule_name, basis, swap_xy, invert_x, invert_y, offs
 
     return image
 
+
 def plot_marker_comparison_superpixel(
     molecule_name: str,
     adata1,
@@ -838,6 +1075,62 @@ def plot_marker_comparison_superpixel(
     save_path: str = None,
     format: str = 'pdf'
 ):
+    """
+    Compare molecule expression between two sections as superpixel images.
+
+    This function generates 2D expression images for the specified molecule 
+    from two AnnData objects (e.g., raw vs enhanced), and displays them 
+    side by side with consistent visualization settings.
+
+    Parameters
+    ----------
+    molecule_name : str
+        Molecule (gene/feature) name to visualize.
+    adata1 : AnnData
+        First annotated dataset.
+    adata2 : AnnData
+        Second annotated dataset.
+    section1_label : str, default="Section 1"
+        Title label for the first dataset.
+    section2_label : str, default="Section 2"
+        Title label for the second dataset.
+    basis : str, default="spatial"
+        Key in `.obsm` containing spatial coordinates.
+    colormap : str, default="viridis"
+        Colormap used for expression visualization.
+    plot_style : {"original", "equal"}, default="original"
+        - "original": keep default aspect ratio.  
+        - "equal": enforce equal aspect ratio (square pixels).
+    scale : bool, default=True
+        Whether to scale expression values to [0, 1].
+    swap_xy : bool, default=False
+        If True, swap x and y coordinates.
+    invert_x : bool, default=False
+        If True, flip the image horizontally.
+    invert_y : bool, default=False
+        If True, flip the image vertically.
+    offset : bool, default=False
+        If True, shift coordinates to start at (0, 0).
+    figscale : int, default=35
+        Scaling factor for figure size.
+    dpi : int, default=300
+        Resolution of the saved figure.
+    remove_title : bool, default=False
+        Whether to remove subplot titles.
+    remove_spine : bool, default=False
+        Whether to hide plot spines.
+    remove_legend : bool, default=False
+        Whether to hide colorbar legends.
+    save_path : str, optional
+        Directory to save the figure. If None, the plot is not saved.
+    format : str, default="pdf"
+        Output format for saving the figure.
+
+    Returns
+    -------
+    None
+        Displays side-by-side expression images and optionally saves them.
+    """
 
 
     img1 = prepare_image(adata1, molecule_name, basis, swap_xy, invert_x, invert_y, offset, scale)
@@ -876,7 +1169,6 @@ def plot_marker_comparison_superpixel(
     plt.close()
 
 
-import pandas as pd
 from typing import List, Dict, Union
 from pathlib import Path
 from anndata import AnnData
@@ -890,19 +1182,42 @@ def get_logfc_df(
     save_path: Union[str, Path] = "results",
     save_name: str = "logfc_comparison"
 ) -> pd.DataFrame:
-    r"""
-    Get log fold change DataFrame for multiple datasets.
+    
+    """
+    Extract log fold change (logFC) values for selected genes and groups, and return as a long-format DataFrame.
 
-    Parameters:
-        adata_list (List[AnnData]): List of AnnData objects.
-        adata_names (List[str]): List of dataset names.
-        target_genes (List[str]): List of target genes.
-        target_groups (List[str]): List of target groups.
-        save_path (Union[str, Path]): Path to save the DataFrame (default: "results").
-        save_name (str): Name of the saved file (default: "logfc_comparison").
+    Parameters
+    ----------
+    adata_list : list of AnnData
+        List of annotated data matrices. Each AnnData must contain 
+        differential expression results in 
+        `adata.uns['rank_genes_groups']` with keys "names" and "logfoldchanges".
+    adata_names : list of str
+        List of dataset names corresponding to `adata_list`. Must have same length.
+    target_genes : list of str
+        List of genes of interest. Must have same length as `target_groups`.
+    target_groups : list of str
+        List of groups (clusters) corresponding to `target_genes`.
+    save_path : str or Path, default="results"
+        Directory where the output CSV file will be saved.
+    save_name : str, default="logfc_comparison"
+        Base filename (without extension) for saving.
 
-    Returns:
-        pd.DataFrame: DataFrame containing log fold changes.
+    Returns
+    -------
+    pd.DataFrame
+        Long-format DataFrame with columns:
+        - "Gene": target gene  
+        - "Group": target group  
+        - "type": dataset name  
+        - "logFC": extracted log fold change (float or None if missing)
+
+    Notes
+    -----
+    - The function calls `get_logfc` internally for each (gene, group, dataset).  
+    - If a gene or group cannot be found in a dataset, `logFC` is recorded as None 
+      and a warning is printed.  
+    - The result is also saved to `{save_path}/{save_name}.csv` (tab-delimited).
     """
     
     if len(target_genes) != len(target_groups):
@@ -916,7 +1231,6 @@ def get_logfc_df(
         'Group': target_groups
     }
     
-    # Extract logFC values for each dataset
     for adata, name in zip(adata_list, adata_names):
         logfc_values = []
         for gene, group in zip(target_genes, target_groups):
@@ -934,10 +1248,8 @@ def get_logfc_df(
         
         results[f'logFC_{name}'] = logfc_values
     
-    # Convert to DataFrame
     logfc_df = pd.DataFrame(results)
     
-    # Melt the DataFrame for visualization
     value_vars = [col for col in logfc_df.columns if col.startswith('logFC_')]
     long_df = pd.melt(
         logfc_df,
@@ -955,9 +1267,7 @@ def get_logfc_df(
     
     return long_df
 
-import pandas as pd
-from anndata import AnnData
-from typing import Optional, Union
+
 
 def get_top_degs_df(
     adata: AnnData,
@@ -965,29 +1275,39 @@ def get_top_degs_df(
     groupby: Optional[str] = None,
     key: str = 'rank_genes_groups'
 ) -> pd.DataFrame:
-    r"""
-    Extract top N differentially expressed genes (DEGs) and their statistics from Scanpy's rank_genes_groups results.
-    
+    """
+    Extract the top-N differentially expressed genes (DEGs) and their statistics 
+    from Scanpy's `rank_genes_groups` results.
+
     Parameters
     ----------
     adata : AnnData
-        AnnData object containing rank_genes_groups results.
-    n_top_genes : int, optional
-        Number of top DEGs to extract per group (default: 20).
+        AnnData object containing differential expression results.
+    n_top_genes : int, default=20
+        Number of top DEGs to extract per group.
     groupby : str, optional
-        Column name in adata.obs used for grouping. If None, automatically reads from rank_genes_groups.
-    key : str, optional
-        Key name for rank_genes_groups in adata.uns (default: 'rank_genes_groups').
-    
+        Column name in `adata.obs` used for grouping. If None, it will try to read 
+        from `adata.uns[key]['params']['groupby']`.
+    key : str, default='rank_genes_groups'
+        Key in `adata.uns` where DE results are stored.
+
     Returns
     -------
     pd.DataFrame
-        DataFrame containing the following columns:
-        - Group: Group name
-        - Gene: Gene symbol
-        - LogFC: Log fold change
-        - PValue: Raw p-value
-        - AdjPValue: Adjusted p-value (e.g., FDR)
+        DataFrame containing DEGs with the following columns:
+        - "Group": group/cluster name
+        - "Gene": gene symbol
+        - "LogFC": log fold change
+        - "PValue": raw p-value
+        - "AdjPValue": adjusted p-value (FDR)
+
+    Raises
+    ------
+    KeyError
+        If `key` is not found in `adata.uns`.
+    ValueError
+        If required fields (`names`, `logfoldchanges`, `pvals`, `pvals_adj`) 
+        are missing in `adata.uns[key]`.
     """
 
     if key not in adata.uns:
@@ -1032,12 +1352,7 @@ def get_top_degs_df(
 
     return pd.DataFrame(top_genes)
 
-from typing import Optional, Dict
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from anndata import AnnData
+
 
 def plot_modality_weights(
     adata: AnnData,
@@ -1050,10 +1365,50 @@ def plot_modality_weights(
     palette: Dict[str, str] = None,
     **kwargs
 ) -> plt.Axes:
-    r"""
-    Plot modality weights for clusters with legend outside right.
     """
- 
+    Visualize modality weights across clusters using violin plots.
+
+    This function plots the attention weights (stored in ``adata.obsm['alpha']``)
+    for two modalities across clusters, showing their distributions as violin plots.
+    Each modality is plotted with a distinct color, and the legend is placed outside
+    the right side of the plot.
+
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix containing modality weights in ``adata.obsm['alpha']``.
+    modality_names : tuple of str, default=("RNA", "Protein")
+        Names of the modalities. Must correspond to the two columns in
+        ``adata.obsm['alpha']``.
+    cluster_column : str, default="DePass"
+        Column in ``adata.obs`` specifying cluster assignments.
+    save_path : str, optional
+        Directory where the plot will be saved. If None, the figure is not saved.
+    save_name : str, default="modality_weights"
+        Filename (without extension) for saving the plot.
+    show : bool, default=True
+        Whether to display the plot after creation.
+    figsize : tuple of float, default=(5, 3)
+        Figure size in inches.
+    palette : dict, optional
+        Dictionary mapping modality names to colors. If None, a default palette is used.
+    **kwargs : dict
+        Additional keyword arguments passed to ``seaborn.violinplot``.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The matplotlib axes object containing the plot.
+
+    Raises
+    ------
+    KeyError
+        If ``'alpha'`` is not found in ``adata.obsm`` or if ``cluster_column`` is not
+        found in ``adata.obs``.
+    ValueError
+        If ``adata.obsm['alpha']`` does not have exactly two columns.
+    """
+
     if 'alpha' not in adata.obsm:
         raise KeyError("Missing modality weights in adata.obsm['alpha']")
     if cluster_column not in adata.obs:
@@ -1118,25 +1473,43 @@ def plot_modality_weights(
 
     return ax
 
-import scanpy as sc
-import pandas as pd
-import numpy as np
+
 from scipy.stats import pearsonr
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 def calculate_correlation(adata1, adata2, gene_adt_mapping):
-    r"""
-    Calculate correlations between genes and ADTs.
-
-    Parameters:
-        adata1 (AnnData): First AnnData object (genes).
-        adata2 (AnnData): Second AnnData object (ADTs).
-        gene_adt_mapping (dict): Mapping from genes to ADTs.
-
-    Returns:
-        pd.DataFrame: DataFrame containing correlation results.
     """
+    Calculate Pearson correlations between gene expression and ADT expression.
+
+    This function takes two AnnData objects (one containing gene expression 
+    and the other containing ADT expression) and computes Pearson correlation 
+    coefficients for specified gene–ADT pairs. The mapping between genes and 
+    ADTs is provided as a dictionary.
+
+    Parameters
+    ----------
+    adata1 : AnnData
+        AnnData object containing gene expression data.
+    adata2 : AnnData
+        AnnData object containing ADT expression data.
+    gene_adt_mapping : dict
+        Dictionary mapping ADT names (keys) to lists of gene names (values).
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with one row per gene–ADT pair, containing:
+        - ``ADT`` : ADT name
+        - ``Gene`` : Gene name
+        - ``Gene_ADT`` : Combined identifier in the form ``Gene_ADT``
+        - ``Correlation`` : Pearson correlation coefficient
+        - ``P_value`` : Two-tailed p-value for testing non-correlation
+
+    Notes
+    -----
+    - Warnings are printed if a gene or ADT is not found in the corresponding dataset.
+    - Assumes that ``adata1`` and ``adata2`` are aligned by cells (same observations).
+    """
+
     results = []
     for adt, genes in gene_adt_mapping.items():
         if adt not in adata2.var_names:
@@ -1147,12 +1520,9 @@ def calculate_correlation(adata1, adata2, gene_adt_mapping):
             if gene not in adata1.var_names:
                 print(f"Warning: {gene} not found in gene data.")
                 continue
-            
-            # Extract expression values
-            gene_expression = adata1[:, gene].X.flatten()  # Gene expression
-            adt_expression = adata2[:, adt].X.flatten()    # ADT expression
-            
-            # Calculate Pearson correlation coefficient
+    
+            gene_expression = adata1[:, gene].X.flatten() 
+            adt_expression = adata2[:, adt].X.flatten()    
             correlation, p_value = pearsonr(gene_expression, adt_expression)
             
             results.append({
