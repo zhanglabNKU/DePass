@@ -15,7 +15,7 @@ DePass is a dual-enhanced graph learning framework designed for integrated analy
 
 For detailed tutorials, you can refer to the following resources:
 
-- **GitHub Repository**: [DePass Tutorials on GitHub](https://github.com/zhanglabNKU/DePass/tree/main/docs/Tutorials)  
+- **GitHub Repository**: [DePass Tutorials on GitHub](docs/Tutorials) 
 
 - **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)  
 
