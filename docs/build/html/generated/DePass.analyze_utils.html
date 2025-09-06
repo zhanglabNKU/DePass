@@ -1,0 +1,157 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DePass.analyze_utils &mdash; DePass 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/readthedocs-custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=2389946f"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">DePass Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DePass</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">DePass.analyze_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-DePass.analyze_utils">
+<span id="depass-analyze-utils"></span><h1>DePass.analyze_utils<a class="headerlink" href="#module-DePass.analyze_utils" title="Permalink to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.calculate_correlation" title="DePass.analyze_utils.calculate_correlation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_correlation</span></code></a>(adata1, adata2, ...)</p></td>
+<td><p>Calculate Pearson correlations between gene expression and ADT expression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.cluster_and_visualize_superpixel" title="DePass.analyze_utils.cluster_and_visualize_superpixel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_and_visualize_superpixel</span></code></a>(...[, ...])</p></td>
+<td><p>Cluster superpixel embeddings and visualize results on histology sections.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.getLogFC" title="DePass.analyze_utils.getLogFC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getLogFC</span></code></a>(target_genes, target_groups, ...)</p></td>
+<td><p>Extract log fold changes (LogFC) for a list of target genes in specific groups.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.get_logfc" title="DePass.analyze_utils.get_logfc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_logfc</span></code></a>(target_gene, target_group, ...)</p></td>
+<td><p>Retrieve log fold change for a specific gene in a target group.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.get_logfc_df" title="DePass.analyze_utils.get_logfc_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_logfc_df</span></code></a>(adata_list, adata_names, ...[, ...])</p></td>
+<td><p>Extract log fold change (logFC) values for selected genes and groups, and return as a long-format DataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.get_top_degs_df" title="DePass.analyze_utils.get_top_degs_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_top_degs_df</span></code></a>(adata[, n_top_genes, ...])</p></td>
+<td><p>Extract the top-N differentially expressed genes (DEGs) and their statistics  from Scanpy's <cite>rank_genes_groups</cite> results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_histology_clusters" title="DePass.analyze_utils.plot_histology_clusters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_histology_clusters</span></code></a>(he_clusters_image, ...)</p></td>
+<td><p>Visualize clustered histology image with color-coded clusters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_marker_comparison" title="DePass.analyze_utils.plot_marker_comparison"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_marker_comparison</span></code></a>(adata1, adata2, ...)</p></td>
+<td><p>Plot expression of selected marker genes across groups using a dot plot.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_marker_comparison_superpixel" title="DePass.analyze_utils.plot_marker_comparison_superpixel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_marker_comparison_superpixel</span></code></a>(...[, ...])</p></td>
+<td><p>Compare molecule expression between two sections as superpixel images.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_marker_comparison_with_logFC" title="DePass.analyze_utils.plot_marker_comparison_with_logFC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_marker_comparison_with_logFC</span></code></a>(adata1, ...)</p></td>
+<td><p>Compare spatial expression of a target gene between two datasets, displaying log fold change (logFC) values from differential expression results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_modality_weights" title="DePass.analyze_utils.plot_modality_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_modality_weights</span></code></a>(adata[, ...])</p></td>
+<td><p>Visualize modality weights across clusters using violin plots.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_spatial" title="DePass.analyze_utils.plot_spatial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_spatial</span></code></a>(adata[, color, save_path, ...])</p></td>
+<td><p>Plot spatial data using <cite>scanpy.pl.embedding</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.plot_superpixel" title="DePass.analyze_utils.plot_superpixel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_superpixel</span></code></a>(adata[, label_key, ...])</p></td>
+<td><p>Visualize superpixel clusters using labels and spatial coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.prepare_image" title="DePass.analyze_utils.prepare_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_image</span></code></a>(adata, molecule_name, basis, ...)</p></td>
+<td><p>Convert molecule expression values into a 2D image based on spatial coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/DePass.html#DePass.analyze_utils.rank_genes_groups" title="DePass.analyze_utils.rank_genes_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank_genes_groups</span></code></a>(adata[, groupby, method, ...])</p></td>
+<td><p>Perform differential expression analysis and visualize ranked genes.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Zhang lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -117,6 +117,12 @@ class DePass:
         print('Modalities:',self.n_views,'| Data:',self.data_type,'| Device:',device_name,'\n')   
 
     def train(self):
+        """
+        Main training entry point.
+
+        Selects appropriate training strategy based on the number
+        of modalities (2 or >=3) and dataset size.
+        """
         if self.n_views == 2:
             modality = list(self.data.keys())
             self.mlpLayer1=[128,64] if modality[0] in ['protein'] else [256,64]
@@ -131,9 +137,9 @@ class DePass:
             self.dim_input2 = self.features_omics2.shape[1]
            
             if self.features_omics1.shape[0] > 4e4:
-                self.train2_sparse() # Use sparse format and batch training
+                self._train2_sparse() # Use sparse format and batch training
             else:
-                self.train2() 
+                self._train2() 
 
         if self.n_views >= 3:
             modality = list(self.data.keys())
@@ -155,10 +161,13 @@ class DePass:
                 dim_input = features_omics.shape[1]
                 self.dim_input_list.append(dim_input)
     
-            self.train_va()
+            self._train_va()
      
 
-    def train2(self):
+    def _train2(self):
+        """
+        Full-graph training for two-modality data using DePassAE.
+        """
         self.model = DePassAE(dim_input1=self.dim_input1, dim_input2=self.dim_input2, mlplayer1=self.mlpLayer1,
                            mlplayer2=self.mlpLayer2,dim=self.dim).to(self.device)
 
@@ -185,8 +194,8 @@ class DePass:
         FeatNeigh1 = construct_knn_graph_hnsw(data=self.adata_omics1.obsm['input_feat'].copy(),k=k_xNeigh)
         FeatNeigh2 = construct_knn_graph_hnsw(data=self.adata_omics2.obsm['input_feat'].copy(),k=k_xNeigh)
         SpatialNeigh = adj_shared if self.data_type == 'spatial' else None
-        x1_self_enh = get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh1,w_fea=0.1,w_spa=0.1)            
-        x2_self_enh = get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh2,w_fea=0.1,w_spa=0.1) 
+        x1_self_enh = _get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh1,w_fea=0.1,w_spa=0.1)            
+        x2_self_enh = _get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh2,w_fea=0.1,w_spa=0.1) 
         print('Data Enhancement : Done!')
 
         x1_z_enh =  x1_self_enh
@@ -247,8 +256,8 @@ class DePass:
                     results = self.model.gcn_inference(e1,e2,adj_shared_norm,adj1_norm,adj2_norm)
                     self.model.train()
                     ZNeigh = construct_knn_graph_hnsw(data=results['z'].detach().cpu().numpy(),k=k_zNeigh)
-                    x1_z_enh = get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)            
-                    x2_z_enh = get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
+                    x1_z_enh = _get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)            
+                    x2_z_enh = _get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
                     adj1 = construct_knn_graph_hnsw(data=e1.detach().cpu().numpy(),k=self.K_feature)
                     adj2 = construct_knn_graph_hnsw(data=e2.detach().cpu().numpy(),k=self.K_feature)
                     adj1_norm = normalize_adj(adj1).to(self.device)
@@ -264,17 +273,21 @@ class DePass:
             self.model.eval()
             results = self.model.gcn_inference(e1, e2, adj_shared_norm, adj1_norm, adj2_norm)
             ZNeigh = construct_knn_graph_hnsw(data=results['z'].detach().cpu().numpy(),k=k_zNeigh)
-            x1_z_enh = get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)             
-            x2_z_enh = get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)  
+            x1_z_enh = _get_augment(data=self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)             
+            x2_z_enh = _get_augment(data=self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)  
       
-        self.embedding = norm_convert(results['z'])
-        self.z1 = norm_convert(results['z1'])
-        self.z2 = norm_convert(results['z2'])
+        self.embedding = _norm_convert(results['z'])
+        self.z1 = _norm_convert(results['z1'])
+        self.z2 = _norm_convert(results['z2'])
         self.alpha = results['alpha'].detach().cpu().numpy()
         self.x1_enh = x1_z_enh.detach().cpu().numpy()
         self.x2_enh = x2_z_enh.detach().cpu().numpy()
 
-    def train2_sparse(self):
+    def _train2_sparse(self):
+        """
+        Sparse batch training for two-modality data using DePassAE.
+        Suitable for large datasets.
+        """
         self.model = DePassAE(dim_input1=self.dim_input1, dim_input2=self.dim_input2, mlplayer1=self.mlpLayer1,
                            mlplayer2=self.mlpLayer2,dim=self.dim).to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
@@ -298,8 +311,8 @@ class DePass:
         FeatNeigh1 = construct_knn_graph_hnsw_sparse(self.adata_omics1.obsm['input_feat'].copy(), k=k_xNeigh)
         FeatNeigh2 = construct_knn_graph_hnsw_sparse(self.adata_omics2.obsm['input_feat'].copy(), k=k_xNeigh)
         SpatialNeigh = adj_shared if self.data_type == 'spatial' else None
-        x1_self_enh = augment_data_lc(self.features_omics1, SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh1,w_fea=0.1,w_spa=0.1)
-        x2_self_enh = augment_data_lc(self.features_omics2, SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh2,w_fea=0.1,w_spa=0.1)
+        x1_self_enh = _augment_data_lc(self.features_omics1, SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh1,w_fea=0.1,w_spa=0.1)
+        x2_self_enh = _augment_data_lc(self.features_omics2, SpatialNeigh=SpatialNeigh,FeatNeigh=FeatNeigh2,w_fea=0.1,w_spa=0.1)
         x1_z_enh = x1_self_enh 
         x2_z_enh = x2_self_enh 
         print('Data Enhancement : Done!')
@@ -352,8 +365,8 @@ class DePass:
                     results = self.model.gcn_inference(e1,e2,adj_shared_norm,adj1_norm,adj2_norm)
                     self.model.train()
                     ZNeigh = construct_knn_graph_hnsw_sparse(results['z'].detach().cpu().numpy(), k=k_zNeigh) 
-                    x1_z_enh = augment_data_lc(self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)   
-                    x2_z_enh = augment_data_lc(self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
+                    x1_z_enh = _augment_data_lc(self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)   
+                    x2_z_enh = _augment_data_lc(self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
                     adj1 = construct_knn_graph_hnsw_sparse(e1.detach().cpu().numpy(), k=self.K_feature)
                     adj2 = construct_knn_graph_hnsw_sparse(e2.detach().cpu().numpy(), k=self.K_feature)
                     adj1_norm = normalize_adj_scr(adj1).to(self.device)
@@ -369,17 +382,20 @@ class DePass:
             self.model.eval()
             results = self.model.gcn_inference(e1, e2, adj_shared_norm, adj1_norm, adj2_norm)
             ZNeigh = construct_knn_graph_hnsw_sparse(results['z'].detach().cpu().numpy(), k=k_zNeigh) 
-            x1_z_enh  = augment_data_lc(self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)   
-            x2_z_enh  = augment_data_lc(self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
+            x1_z_enh  = _augment_data_lc(self.features_omics1,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh)   
+            x2_z_enh  = _augment_data_lc(self.features_omics2,SpatialNeigh=SpatialNeigh,FeatNeigh=ZNeigh) 
      
-        self.embedding = norm_convert(results['z'])
-        self.z1 = norm_convert(results['z1'])
-        self.z2 = norm_convert(results['z2'])
+        self.embedding = _norm_convert(results['z'])
+        self.z1 = _norm_convert(results['z1'])
+        self.z2 = _norm_convert(results['z2'])
         self.alpha = results['alpha'].detach().cpu().numpy()
         self.x1_enh  = x1_z_enh.detach().cpu().numpy()
         self.x2_enh  = x2_z_enh.detach().cpu().numpy()
     
-    def train_va(self):
+    def _train_va(self):
+        """
+        Training for three or more modalities using variational autoencoder (DePassAE_va).
+        """
         self.model = DePassAE_va(dim_input_list=self.dim_input_list, mlplayer_list=self.mlpLayer_list, dim=self.dim).to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.scheduler = MultiStepLR(self.optimizer, milestones=[80, 160], gamma=0.5)
@@ -410,7 +426,7 @@ class DePass:
         SpatialNeigh = adj_shared if self.data_type == 'spatial' else None
         x_self_enh_list = []
         for i in range(len(self.features_list)):
-            x_self_enh = get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=FeatNeigh_list[i], w_fea=0.1, w_spa=0.1)
+            x_self_enh = _get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=FeatNeigh_list[i], w_fea=0.1, w_spa=0.1)
             x_self_enh_list.append(x_self_enh)
         x_z_enh_list =  x_self_enh_list 
 
@@ -449,7 +465,7 @@ class DePass:
 
                     x_z_enh_list = []
                     for i in range(len(self.features_list)):
-                        x_z_enh = get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=ZNeigh)
+                        x_z_enh = _get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=ZNeigh)
                         x_z_enh_list.append(x_z_enh)
 
                     for i in range(len(e_list)):
@@ -468,10 +484,10 @@ class DePass:
             ZNeigh = construct_knn_graph_hnsw(data=results['z'].detach().cpu().numpy(), k=k_zNeigh)
             x_z_enh_list = []
             for i in range(len(self.features_list)):
-                x_z_enh = get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=ZNeigh)
+                x_z_enh = _get_augment(data=self.features_list[i], SpatialNeigh=SpatialNeigh, FeatNeigh=ZNeigh)
                 x_z_enh_list.append(x_z_enh)
 
-        self.embedding = norm_convert(results['z'])
+        self.embedding = _norm_convert(results['z'])
         self.alpha = results['alpha'].detach().cpu().numpy()
         for i, x in enumerate(x_z_enh_list):
             setattr(self, f'x{i+1}_enh', x.detach().cpu().numpy())
@@ -481,7 +497,26 @@ class DePass:
 import torch
 from scipy.sparse import coo_matrix
 
-def get_augment(data=None,FeatNeigh=None, SpatialNeigh=None, w = 0.01, w_fea=0.25,w_spa=0.25):
+def _get_augment(data=None,FeatNeigh=None, SpatialNeigh=None, w = 0.01, w_fea=0.25,w_spa=0.25):
+        """
+        Compute enhanced feature representation by aggregating feature and spatial neighbors.
+       
+        Parameters
+        ----------
+        data : torch.Tensor
+            Input feature matrix (cells x features).
+        FeatNeigh : torch.sparse.FloatTensor
+            Feature-based KNN graph.
+        SpatialNeigh : torch.sparse.FloatTensor or None
+            Spatial KNN graph (optional).
+        w, w_fea, w_spa : float
+            Weights for feature and spatial aggregation.
+       
+        Returns
+        -------
+        enhanced_data : torch.Tensor
+            Enhanced feature matrix.
+        """
         FeatNeigh = FeatNeigh.to(data.device)
         if SpatialNeigh is None:
             enhanced_data = data + w * FeatNeigh @ data 
@@ -490,16 +525,7 @@ def get_augment(data=None,FeatNeigh=None, SpatialNeigh=None, w = 0.01, w_fea=0.2
             enhanced_data = data + w_fea * FeatNeigh @ data + w_spa * SpatialNeigh @ data      
         return enhanced_data
 
-def toTensor_sparse(data,device):
-        num_samples, _ = data.shape
-        if not isinstance(data, coo_matrix):
-            data = data.tocoo()
-        indices = torch.tensor([data.row, data.col], dtype=torch.long, device=device)
-        values = torch.tensor(data.data, dtype=torch.float32, device=device)
-        data = torch.sparse.FloatTensor(indices, values, (num_samples, num_samples))
-        return data
-
-def augment_data_lc(data, FeatNeigh=None, SpatialNeigh=None, w=0.01, w_fea=0.25, w_spa=0.25):
+def _augment_data_lc(data, FeatNeigh=None, SpatialNeigh=None, w=0.01, w_fea=0.25, w_spa=0.25):
     FeatNeigh = FeatNeigh.to(data.device)
     if SpatialNeigh is None:
                 enhanced_data = data + w * FeatNeigh @ data 
@@ -522,6 +548,19 @@ def augment_data_lc(data, FeatNeigh=None, SpatialNeigh=None, w=0.01, w_fea=0.25,
     
     return enhanced_data
 
-def norm_convert(emb):
+def _norm_convert(emb):
+    """
+    Normalize embeddings row-wise (L2 norm) and convert to numpy array.
+
+    Parameters
+    ----------
+    emb : torch.Tensor
+        Input matrix.
+
+    Returns
+    -------
+    np.ndarray
+        L2-normalized data.
+    """
     emb = F.normalize(emb, p=2, eps=1e-12, dim=1)
     return emb.detach().cpu().numpy()

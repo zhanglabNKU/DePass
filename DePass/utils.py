@@ -167,14 +167,14 @@ def to_undirected_geo_data(adj_shared, node_index=None) -> torch_geometric.data.
     else:
         edge_index, edge_attr = dense_to_sparse(adj_shared)
 
-    node_index = data2input(node_index) if node_index is not None else None
+    node_index = _data2input(node_index) if node_index is not None else None
     geo_dataset = Data(edge_index=edge_index, edge_attr=edge_attr, node_index=node_index)
     transform = ToUndirected()
     undirected_geo = transform(geo_dataset)
     return undirected_geo
 
 
-def data2input(data):
+def _data2input(data):
     import torch
     import scipy.sparse as sp
     import numpy as np

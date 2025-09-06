@@ -7,7 +7,7 @@
 
 DePass is a dual-enhanced graph learning framework designed for integrated analysis of both single-cell and spatial paired multi-omics data. It flexibly supports diverse modality combinations.
 
-![alt text](DePass.jpg)
+![alt text](docs/DePass.jpg)
 
 ---
 
@@ -15,10 +15,9 @@ DePass is a dual-enhanced graph learning framework designed for integrated analy
 
 For detailed tutorials, you can refer to the following resources:
 
-- **GitHub Repository**: [DePass Tutorials on GitHub](https://github.com/zhanglabNKU/DePass/tree/main/Tutorials)  
+- **GitHub Repository**: [DePass Tutorials on GitHub](https://github.com/zhanglabNKU/DePass/tree/main/docs/Tutorials)  
 
 - **Read the Docs**: [DePass Documentation](https://depass-tutorials.readthedocs.io/en/latest/)  
-
 
 ---
 
@@ -47,7 +46,7 @@ pip install DePass
 ```bash
 git clone https://github.com/zhanglabNKU/DePass.git
 cd DePass
-pip install depass-0.0.21-py3-none-any.whl
+pip install depass-0.0.24-py3-none-any.whl
 ```
 #### Additional Dependencies
 
@@ -101,4 +100,4 @@ mclust
 
 ## Data
 
-The raw data used in this study is freely available at [Data](https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link).
+The raw data used in this study is available at [Data](https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link).

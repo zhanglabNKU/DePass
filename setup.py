@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='DePass',
-    version='0.0.21',
+    version='0.0.24',
     description='DePass: a dual-enhanced graph learning framework for paired data integration',
     packages=find_packages(),
     install_requires=[

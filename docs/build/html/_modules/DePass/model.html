@@ -1,0 +1,671 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DePass.model &mdash; DePass 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/readthedocs-custom.css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=2389946f"></script>
+      <script src="../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">DePass Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DePass</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">DePass.model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for DePass.model</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.Net</span><span class="w"> </span><span class="kn">import</span> <span class="n">DePassAE</span><span class="p">,</span> <span class="n">DePassAE_va</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.neighbors</span><span class="w"> </span><span class="kn">import</span> <span class="n">kneighbors_graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClusterData</span><span class="p">,</span> <span class="n">ClusterLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.decomposition</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">coo_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim.lr_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiStepLR</span>
+
+<div class="viewcode-block" id="DePass"><a class="viewcode-back" href="../../api/DePass.html#DePass.model.DePass">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DePass</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+                 <span class="bp">self</span><span class="p">,</span>
+                 <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                 <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;spatial&#39;</span><span class="p">,</span>
+                 <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">),</span>
+                 <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2e-4</span><span class="p">,</span>
+                 <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+                 <span class="n">batch_training</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">sub_graph_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+                 <span class="n">updata_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span>
+                 <span class="n">mlpLayer1</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+                 <span class="n">mlpLayer2</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+                 <span class="n">mlpLayer3</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+                 <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+                 <span class="n">K_spatial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+                 <span class="n">K_feature</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+                 <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the DePass model for multi-omics integration.</span>
+
+<span class="sd">        This class implements DePass, a deep learning framework for integrating</span>
+<span class="sd">        spatial or single-cell multi-modal data (e.g., RNA, protein, spatial coordinates). </span>
+<span class="sd">      </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            Dictionary mapping modality names (e.g., ``&quot;RNA&quot;``, ``&quot;Protein&quot;``) </span>
+<span class="sd">            to their corresponding AnnData objects. Each AnnData must contain </span>
+<span class="sd">            modality-specific features in ``.obsm[&#39;input_feat&#39;]``.</span>
+<span class="sd">        data_type : str, default=&#39;spatial&#39;</span>
+<span class="sd">            Type of dataset. Must be either:</span>
+<span class="sd">            - ``&#39;spatial&#39;`` : for spatial transcriptomics data (requires ``adata.obsm[&#39;spatial&#39;]``).</span>
+<span class="sd">            - ``&#39;single_cell&#39;`` : for scRNA-seq or other single-cell modalities.</span>
+<span class="sd">        device : torch.device, default=torch.device(&#39;cpu&#39;)</span>
+<span class="sd">            Torch device used for training (CPU or CUDA GPU).</span>
+<span class="sd">        learning_rate : float, default=2e-4</span>
+<span class="sd">            Learning rate for the optimizer.</span>
+<span class="sd">        epochs : int, default=200</span>
+<span class="sd">            Total number of training epochs.</span>
+<span class="sd">        batch_training : bool, default=False</span>
+<span class="sd">            Whether to use batch-based training instead of full-graph training.</span>
+<span class="sd">        sub_graph_size : int, default=1024</span>
+<span class="sd">            Subgraph size when ``batch_training=True``.</span>
+<span class="sd">        updata_step : int, default=25</span>
+<span class="sd">            Number of update steps.</span>
+<span class="sd">        mlpLayer1 : list of int, default=[256, 64]</span>
+<span class="sd">            Hidden layer dimensions of the first MLP encoder (for omics 1).</span>
+<span class="sd">        mlpLayer2 : list of int, default=[256, 64]</span>
+<span class="sd">            Hidden layer dimensions of the second MLP encoder (for omics 2).</span>
+<span class="sd">        mlpLayer3 : list of int, default=[256, 64]</span>
+<span class="sd">            Hidden layer dimensions of the third MLP encoder (for omics 3, if provided).</span>
+<span class="sd">        dim : int, default=64</span>
+<span class="sd">            Dimension of the shared embedding space.</span>
+<span class="sd">        K_spatial : int, default=5</span>
+<span class="sd">            Number of neighbors in the spatial KNN graph (only for ``data_type=&#39;spatial&#39;``).</span>
+<span class="sd">        K_feature : int, default=20</span>
+<span class="sd">            Number of neighbors in the feature-based KNN graph.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``data_type`` is not in ``[&#39;spatial&#39;, &#39;single_cell&#39;]``.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``&#39;spatial&#39;`` key is missing in AnnData objects when ``data_type=&#39;spatial&#39;``.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - Prints configuration summary upon initialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="n">data_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="n">epochs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_training</span> <span class="o">=</span> <span class="n">batch_training</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_graph_size</span> <span class="o">=</span> <span class="n">sub_graph_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updata_step</span> <span class="o">=</span> <span class="n">updata_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer1</span> <span class="o">=</span> <span class="n">mlpLayer1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer2</span> <span class="o">=</span> <span class="n">mlpLayer2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer3</span> <span class="o">=</span> <span class="n">mlpLayer3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K_spatial</span> <span class="o">=</span> <span class="n">K_spatial</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span> <span class="o">=</span> <span class="n">K_feature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_views</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">,</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The data type must be &#39;spatial&#39; or &#39;single_cell&#39;, but got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">))</span>
+        
+        <span class="n">first_key</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;spatial&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">first_key</span><span class="p">]</span><span class="o">.</span><span class="n">obsm</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The &#39;spatial&#39; key is not found in `adata.obsm`. Please provide the spatial coordinates.&quot;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;cuda&#39;</span><span class="p">:</span>
+           <span class="n">device_name</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="n">device_name</span> <span class="o">=</span><span class="s1">&#39;CPU&#39;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Config]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Modalities:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_views</span><span class="p">,</span><span class="s1">&#39;| Data:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span><span class="s1">&#39;| Device:&#39;</span><span class="p">,</span><span class="n">device_name</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>   
+
+<div class="viewcode-block" id="DePass.train"><a class="viewcode-back" href="../../api/DePass.html#DePass.model.DePass.train">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Main training entry point.</span>
+
+<span class="sd">        Selects appropriate training strategy based on the number</span>
+<span class="sd">        of modalities (2 or &gt;=3) and dataset size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_views</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">modality</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer1</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="mi">64</span><span class="p">]</span> <span class="k">if</span> <span class="n">modality</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;protein&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span><span class="mi">64</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer2</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="mi">64</span><span class="p">]</span> <span class="k">if</span> <span class="n">modality</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;protein&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span><span class="mi">64</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">modality</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">modality</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dim_input1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dim_input2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+           
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">4e4</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_train2_sparse</span><span class="p">()</span> <span class="c1"># Use sparse format and batch training</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_train2</span><span class="p">()</span> 
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_views</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">modality</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dim_input_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adata_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">features_list</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">modality</span><span class="p">:</span>
+                <span class="n">mlpLayer</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">]</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;protein&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">64</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mlpLayer</span><span class="p">)</span>
+                
+                <span class="n">adata_omics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">adata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adata_omics</span><span class="p">)</span>
+                
+                <span class="n">features_omics</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">adata_omics</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">features_omics</span><span class="p">)</span>
+                
+                <span class="n">dim_input</span> <span class="o">=</span> <span class="n">features_omics</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dim_input_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dim_input</span><span class="p">)</span>
+    
+            <span class="bp">self</span><span class="o">.</span><span class="n">_train_va</span><span class="p">()</span></div>
+     
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Full-graph training for two-modality data using DePassAE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">DePassAE</span><span class="p">(</span><span class="n">dim_input1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_input1</span><span class="p">,</span> <span class="n">dim_input2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_input2</span><span class="p">,</span> <span class="n">mlplayer1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer1</span><span class="p">,</span>
+                           <span class="n">mlplayer2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer2</span><span class="p">,</span><span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">MultiStepLR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span><span class="p">,</span><span class="mi">160</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Initializing]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Running...&#39;</span><span class="p">)</span>
+        <span class="n">adj1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+        <span class="n">adj2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+       
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span><span class="p">:</span>
+            <span class="n">xy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">xy</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_spatial</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">adj1</span> <span class="o">+</span> <span class="n">adj2</span>
+            <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Done!&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Running...&#39;</span><span class="p">)</span>
+        <span class="n">k_xNeigh</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">k_zNeigh</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="mi">3</span>
+        <span class="n">FeatNeigh1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="n">k_xNeigh</span><span class="p">)</span>
+        <span class="n">FeatNeigh2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="n">k_xNeigh</span><span class="p">)</span>
+        <span class="n">SpatialNeigh</span> <span class="o">=</span> <span class="n">adj_shared</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">x1_self_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">FeatNeigh1</span><span class="p">,</span><span class="n">w_fea</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">w_spa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>            
+        <span class="n">x2_self_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">FeatNeigh2</span><span class="p">,</span><span class="n">w_fea</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">w_spa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Done!&#39;</span><span class="p">)</span>
+
+        <span class="n">x1_z_enh</span> <span class="o">=</span>  <span class="n">x1_self_enh</span>
+        <span class="n">x2_z_enh</span> <span class="o">=</span>  <span class="n">x2_self_enh</span>
+
+        <span class="n">adj1_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">adj2_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_training</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">undirected_geo</span> <span class="o">=</span> <span class="n">to_undirected_geo_data</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">,</span><span class="n">node_index</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">cluster_data</span> <span class="o">=</span> <span class="n">ClusterData</span><span class="p">(</span><span class="n">undirected_geo</span><span class="p">,</span> <span class="n">num_parts</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">undirected_geo</span><span class="o">.</span><span class="n">num_nodes</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_graph_size</span><span class="p">))</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+                                       <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">train_loader</span> <span class="o">=</span> <span class="n">ClusterLoader</span><span class="p">(</span><span class="n">cluster_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Training]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training starts...&quot;</span><span class="p">)</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">)):</span>
+            <span class="n">e1</span><span class="p">,</span> <span class="n">e2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mlp_forward</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="n">x1_self_enh</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="n">x1_z_enh</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">x2_self_enh</span><span class="p">,</span> <span class="n">z2</span><span class="o">=</span><span class="n">x2_z_enh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_training</span><span class="p">:</span>
+                <span class="n">loss_recon1_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">loss_recon2_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+                    <span class="n">np_index</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">node_index</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                    <span class="n">e1_batch</span> <span class="o">=</span> <span class="n">e1</span><span class="p">[</span><span class="n">np_index</span><span class="p">]</span>
+                    <span class="n">e2_batch</span> <span class="o">=</span> <span class="n">e2</span><span class="p">[</span><span class="n">np_index</span><span class="p">]</span>
+                    <span class="n">adj1_batch</span> <span class="o">=</span> <span class="n">adj1</span><span class="p">[</span><span class="n">np_index</span><span class="p">,</span> <span class="p">:][:,</span> <span class="n">np_index</span><span class="p">]</span>
+                    <span class="n">adj2_batch</span> <span class="o">=</span> <span class="n">adj2</span><span class="p">[</span><span class="n">np_index</span><span class="p">,</span> <span class="p">:][:,</span> <span class="n">np_index</span><span class="p">]</span>
+                    <span class="n">adj_shared_batch</span> <span class="o">=</span> <span class="n">adj_shared</span><span class="p">[</span><span class="n">np_index</span><span class="p">,</span> <span class="p">:][:,</span> <span class="n">np_index</span><span class="p">]</span>
+                    <span class="n">adj1_batch</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj1_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">adj2_batch</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj2_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">adj_shared_batch</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj_shared_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_forward</span><span class="p">(</span><span class="n">e1_batch</span><span class="p">,</span> <span class="n">e2_batch</span><span class="p">,</span> <span class="n">adj_shared_batch</span><span class="p">,</span> <span class="n">adj1_batch</span><span class="p">,</span> <span class="n">adj2_batch</span><span class="p">)</span>
+                    <span class="n">loss_recon1_</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">[</span><span class="n">np_index</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon1&#39;</span><span class="p">])</span>
+                    <span class="n">loss_recon2_</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">[</span><span class="n">np_index</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon2&#39;</span><span class="p">])</span>
+                    <span class="n">loss_recon1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_recon1_</span><span class="p">)</span>
+                    <span class="n">loss_recon2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_recon2_</span><span class="p">)</span>
+                <span class="n">loss_recon1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">loss_recon1_list</span><span class="p">))</span>
+                <span class="n">loss_recon2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">loss_recon2_list</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>    
+                <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_forward</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj1_norm</span><span class="p">,</span> <span class="n">adj2_norm</span><span class="p">)</span>
+                <span class="n">loss_recon1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon1&#39;</span><span class="p">])</span>
+                <span class="n">loss_recon2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon2&#39;</span><span class="p">])</span>
+
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_recon1</span> <span class="o">+</span> <span class="n">loss_recon2</span> 
+         
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  
+
+            <span class="k">if</span> <span class="n">epoch</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">updata_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span><span class="n">e2</span><span class="p">,</span><span class="n">adj_shared_norm</span><span class="p">,</span><span class="n">adj1_norm</span><span class="p">,</span><span class="n">adj2_norm</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+                    <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span>
+                    <span class="n">x1_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>            
+                    <span class="n">x2_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span> 
+                    <span class="n">adj1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">e1</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+                    <span class="n">adj2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">e2</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+                    <span class="n">adj1_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">adj2_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+                        <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">adj1</span> <span class="o">+</span> <span class="n">adj2</span>
+                        <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training finished!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj1_norm</span><span class="p">,</span> <span class="n">adj2_norm</span><span class="p">)</span>
+            <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span><span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span>
+            <span class="n">x1_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>             
+            <span class="n">x2_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>  
+      
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z1</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z1&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z2</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z2&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x1_enh</span> <span class="o">=</span> <span class="n">x1_z_enh</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x2_enh</span> <span class="o">=</span> <span class="n">x2_z_enh</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train2_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sparse batch training for two-modality data using DePassAE.</span>
+<span class="sd">        Suitable for large datasets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">DePassAE</span><span class="p">(</span><span class="n">dim_input1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_input1</span><span class="p">,</span> <span class="n">dim_input2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_input2</span><span class="p">,</span> <span class="n">mlplayer1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer1</span><span class="p">,</span>
+                           <span class="n">mlplayer2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer2</span><span class="p">,</span><span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">MultiStepLR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span><span class="p">,</span><span class="mi">160</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Initializing]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Running...&#39;</span><span class="p">)</span>
+        <span class="n">adj1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+        <span class="n">adj2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span><span class="p">:</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_spatial</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">adj1</span> <span class="o">+</span> <span class="n">adj2</span>
+            <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Done!&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Running...&#39;</span><span class="p">)</span>
+        <span class="n">k_xNeigh</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="c1"># k_zNeigh = int(self.K_feature/2) if self.data_type == &#39;spatial&#39; else 6</span>
+        <span class="n">k_zNeigh</span> <span class="o">=</span> <span class="mi">20</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="mi">6</span>
+        <span class="n">FeatNeigh1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics1</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_xNeigh</span><span class="p">)</span>
+        <span class="n">FeatNeigh2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adata_omics2</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_xNeigh</span><span class="p">)</span>
+        <span class="n">SpatialNeigh</span> <span class="o">=</span> <span class="n">adj_shared</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">x1_self_enh</span> <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">FeatNeigh1</span><span class="p">,</span><span class="n">w_fea</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">w_spa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">x2_self_enh</span> <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">FeatNeigh2</span><span class="p">,</span><span class="n">w_fea</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">w_spa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">x1_z_enh</span> <span class="o">=</span> <span class="n">x1_self_enh</span> 
+        <span class="n">x2_z_enh</span> <span class="o">=</span> <span class="n">x2_self_enh</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Done!&#39;</span><span class="p">)</span>
+
+        <span class="n">adj1_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">adj2_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># batch_training</span>
+        <span class="n">undirected_geo</span> <span class="o">=</span> <span class="n">to_undirected_geo_data</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">,</span><span class="n">node_index</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">cluster_data</span> <span class="o">=</span> <span class="n">ClusterData</span><span class="p">(</span><span class="n">undirected_geo</span><span class="p">,</span> <span class="n">num_parts</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">undirected_geo</span><span class="o">.</span><span class="n">num_nodes</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_graph_size</span><span class="p">))</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+                                       <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">train_loader</span> <span class="o">=</span> <span class="n">ClusterLoader</span><span class="p">(</span><span class="n">cluster_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Training]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training starts...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">)):</span>
+            <span class="n">e1</span><span class="p">,</span> <span class="n">e2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mlp_forward</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="n">x1_self_enh</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="n">x1_z_enh</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">x2_self_enh</span><span class="p">,</span> <span class="n">z2</span><span class="o">=</span><span class="n">x2_z_enh</span><span class="p">)</span>
+            <span class="n">loss_recon1_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">loss_recon2_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+                <span class="n">np_index</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">node_index</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                <span class="n">e1_batch</span> <span class="o">=</span> <span class="n">e1</span><span class="p">[</span><span class="n">np_index</span><span class="p">]</span>
+                <span class="n">e2_batch</span> <span class="o">=</span> <span class="n">e2</span><span class="p">[</span><span class="n">np_index</span><span class="p">]</span>
+                <span class="n">adj1_batch</span> <span class="o">=</span> <span class="n">sparse_indexing</span><span class="p">(</span><span class="n">adj1</span><span class="p">,</span> <span class="n">np_index</span><span class="p">)</span>
+                <span class="n">adj2_batch</span> <span class="o">=</span> <span class="n">sparse_indexing</span><span class="p">(</span><span class="n">adj2</span><span class="p">,</span> <span class="n">np_index</span><span class="p">)</span>
+                <span class="n">adj_shared_batch</span> <span class="o">=</span> <span class="n">sparse_indexing</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">,</span> <span class="n">np_index</span><span class="p">)</span>
+                <span class="n">adj1_batch</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj1_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">adj2_batch</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj2_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">adj_shared_batch</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj_shared_batch</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_forward</span><span class="p">(</span><span class="n">e1_batch</span><span class="p">,</span> <span class="n">e2_batch</span><span class="p">,</span> <span class="n">adj_shared_batch</span><span class="p">,</span> <span class="n">adj1_batch</span><span class="p">,</span> <span class="n">adj2_batch</span><span class="p">)</span>
+                <span class="n">loss_recon1_</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">[</span><span class="n">np_index</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon1&#39;</span><span class="p">])</span>
+                <span class="n">loss_recon2_</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">[</span><span class="n">np_index</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recon2&#39;</span><span class="p">])</span>
+                <span class="n">loss_recon1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_recon1_</span><span class="p">)</span>
+                <span class="n">loss_recon2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_recon2_</span><span class="p">)</span>
+
+            <span class="n">loss_recon1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">loss_recon1_list</span><span class="p">))</span>
+            <span class="n">loss_recon2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">loss_recon2_list</span><span class="p">))</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_recon1</span> <span class="o">+</span> <span class="n">loss_recon2</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">epoch</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">updata_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span><span class="n">e2</span><span class="p">,</span><span class="n">adj_shared_norm</span><span class="p">,</span><span class="n">adj1_norm</span><span class="p">,</span><span class="n">adj2_norm</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+                    <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span> 
+                    <span class="n">x1_z_enh</span> <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>   
+                    <span class="n">x2_z_enh</span> <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span> 
+                    <span class="n">adj1</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="n">e1</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+                    <span class="n">adj2</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="n">e2</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+                    <span class="n">adj1_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">adj2_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+                        <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">adj1</span> <span class="o">+</span> <span class="n">adj2</span>
+                        <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj_scr</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training finished!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj1_norm</span><span class="p">,</span> <span class="n">adj2_norm</span><span class="p">)</span>
+            <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw_sparse</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span> 
+            <span class="n">x1_z_enh</span>  <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics1</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>   
+            <span class="n">x2_z_enh</span>  <span class="o">=</span> <span class="n">_augment_data_lc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_omics2</span><span class="p">,</span><span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span> 
+     
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z1</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z1&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z2</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z2&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x1_enh</span>  <span class="o">=</span> <span class="n">x1_z_enh</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x2_enh</span>  <span class="o">=</span> <span class="n">x2_z_enh</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train_va</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Training for three or more modalities using variational autoencoder (DePassAE_va).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">DePassAE_va</span><span class="p">(</span><span class="n">dim_input_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_input_list</span><span class="p">,</span> <span class="n">mlplayer_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mlpLayer_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">MultiStepLR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span><span class="p">,</span> <span class="mi">160</span><span class="p">],</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Initializing]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Running...&#39;</span><span class="p">)</span>
+        <span class="n">adj_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">adata</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">adata_list</span><span class="p">:</span>
+            <span class="n">adj</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+            <span class="n">adj_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span><span class="p">:</span>
+            <span class="n">xy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adata_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">xy</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_spatial</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+            <span class="n">adj_shared</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">adj_list</span><span class="p">)</span>
+            <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Graph Construction : Done!&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Running...&#39;</span><span class="p">)</span>
+        <span class="n">k_xNeigh</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">k_zNeigh</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="mi">3</span>
+        <span class="n">FeatNeigh_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">adata</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">adata_list</span><span class="p">:</span>
+            <span class="n">FeatNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;input_feat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_xNeigh</span><span class="p">)</span>
+            <span class="n">FeatNeigh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FeatNeigh</span><span class="p">)</span>
+
+        <span class="n">SpatialNeigh</span> <span class="o">=</span> <span class="n">adj_shared</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;spatial&#39;</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">x_self_enh_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">)):</span>
+            <span class="n">x_self_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span> <span class="n">FeatNeigh</span><span class="o">=</span><span class="n">FeatNeigh_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">w_fea</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">w_spa</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">x_self_enh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_self_enh</span><span class="p">)</span>
+        <span class="n">x_z_enh_list</span> <span class="o">=</span>  <span class="n">x_self_enh_list</span> 
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data Enhancement : Done!&#39;</span><span class="p">)</span>
+
+        <span class="n">adj_norm_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">adj</span> <span class="ow">in</span> <span class="n">adj_list</span><span class="p">:</span>
+            <span class="n">adj_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">adj_norm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adj_norm</span><span class="p">)</span>
+        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[Training]&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training starts...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">)):</span>
+            <span class="n">e_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mlp_forward</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">x_self_enh_list</span><span class="p">,</span> <span class="n">zs</span><span class="o">=</span><span class="n">x_z_enh_list</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_forward</span><span class="p">(</span><span class="n">e_list</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj_norm_list</span><span class="p">)</span>
+            <span class="n">loss_recon_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">)):</span>
+                <span class="n">loss_recon</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;emb_recons&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">loss_recon_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_recon</span><span class="p">)</span>
+
+            <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss_recon_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">epoch</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">updata_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e_list</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj_norm_list</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+                    <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span>
+
+                    <span class="n">x_z_enh_list</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">)):</span>
+                        <span class="n">x_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span> <span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>
+                        <span class="n">x_z_enh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_z_enh</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">e_list</span><span class="p">)):</span>
+                        <span class="n">adj</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">e_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K_feature</span><span class="p">)</span>
+                        <span class="n">adj_norm_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;single_cell&#39;</span><span class="p">:</span>
+                        <span class="n">adj_shared</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">adj_list</span><span class="p">)</span>
+                        <span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">adj_shared</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">adj_shared_norm</span> <span class="o">=</span> <span class="n">normalize_adj</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model training finished!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gcn_inference</span><span class="p">(</span><span class="n">e_list</span><span class="p">,</span> <span class="n">adj_shared_norm</span><span class="p">,</span> <span class="n">adj_norm_list</span><span class="p">)</span>
+            <span class="n">ZNeigh</span> <span class="o">=</span> <span class="n">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">k</span><span class="o">=</span><span class="n">k_zNeigh</span><span class="p">)</span>
+            <span class="n">x_z_enh_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">)):</span>
+                <span class="n">x_z_enh</span> <span class="o">=</span> <span class="n">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="n">SpatialNeigh</span><span class="p">,</span> <span class="n">FeatNeigh</span><span class="o">=</span><span class="n">ZNeigh</span><span class="p">)</span>
+                <span class="n">x_z_enh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_z_enh</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">_norm_convert</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x_z_enh_list</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;x</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">_enh&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span></div>
+    
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">coo_matrix</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_augment</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">FeatNeigh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">w_fea</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">w_spa</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute enhanced feature representation by aggregating feature and spatial neighbors.</span>
+<span class="sd">       </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : torch.Tensor</span>
+<span class="sd">            Input feature matrix (cells x features).</span>
+<span class="sd">        FeatNeigh : torch.sparse.FloatTensor</span>
+<span class="sd">            Feature-based KNN graph.</span>
+<span class="sd">        SpatialNeigh : torch.sparse.FloatTensor or None</span>
+<span class="sd">            Spatial KNN graph (optional).</span>
+<span class="sd">        w, w_fea, w_spa : float</span>
+<span class="sd">            Weights for feature and spatial aggregation.</span>
+<span class="sd">       </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        enhanced_data : torch.Tensor</span>
+<span class="sd">            Enhanced feature matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">FeatNeigh</span> <span class="o">=</span> <span class="n">FeatNeigh</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">SpatialNeigh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">enhanced_data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="n">FeatNeigh</span> <span class="o">@</span> <span class="n">data</span> 
+        <span class="k">if</span> <span class="n">SpatialNeigh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">SpatialNeigh</span> <span class="o">=</span> <span class="n">SpatialNeigh</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">enhanced_data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">w_fea</span> <span class="o">*</span> <span class="n">FeatNeigh</span> <span class="o">@</span> <span class="n">data</span> <span class="o">+</span> <span class="n">w_spa</span> <span class="o">*</span> <span class="n">SpatialNeigh</span> <span class="o">@</span> <span class="n">data</span>      
+        <span class="k">return</span> <span class="n">enhanced_data</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_augment_data_lc</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">FeatNeigh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">SpatialNeigh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">w_fea</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">w_spa</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+    <span class="n">FeatNeigh</span> <span class="o">=</span> <span class="n">FeatNeigh</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">SpatialNeigh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">enhanced_data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">w</span> <span class="o">*</span> <span class="n">FeatNeigh</span> <span class="o">@</span> <span class="n">data</span> 
+        
+    <span class="k">if</span> <span class="n">SpatialNeigh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+       <span class="n">SpatialNeigh</span> <span class="o">=</span> <span class="n">SpatialNeigh</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+       <span class="n">enhanced_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+      
+       <span class="n">feat_contribution</span> <span class="o">=</span> <span class="n">w_fea</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">FeatNeigh</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+       <span class="n">enhanced_data</span> <span class="o">+=</span> <span class="n">feat_contribution</span>
+       <span class="k">del</span> <span class="n">feat_contribution</span>  
+       <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+           <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>  
+       
+       <span class="n">spa_contribution</span> <span class="o">=</span> <span class="n">w_spa</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">SpatialNeigh</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+       <span class="n">enhanced_data</span> <span class="o">+=</span> <span class="n">spa_contribution</span>
+       <span class="k">del</span> <span class="n">spa_contribution</span>  
+       <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">enhanced_data</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_norm_convert</span><span class="p">(</span><span class="n">emb</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize embeddings row-wise (L2 norm) and convert to numpy array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    emb : torch.Tensor</span>
+<span class="sd">        Input matrix.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        L2-normalized data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">emb</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">emb</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">emb</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Zhang lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
