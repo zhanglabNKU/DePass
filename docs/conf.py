@@ -5,9 +5,11 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+import DePass
+
 project = 'DePass'
 author = 'lwyx'
-copyright = 'Zhang lab'
+copyright = 'zhanglabNKU'
 release = '0.1.0'
 
 extensions = [
@@ -34,6 +36,19 @@ intersphinx_mapping = {
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', '**.ipynb_checkpoints']
+
+
+autodoc_mock_imports = [
+    "torch",
+    "torch_geometric",
+    "torch_scatter",
+    "torch_sparse",
+    "torch_cluster",
+    "torch_spline_conv",
+    "rpy2",
+    "mclust",
+]
+
 
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
