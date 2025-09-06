@@ -17,7 +17,7 @@ For detailed tutorials, you can refer to the following resources:
 
 - **GitHub Repository**: [DePass Tutorials on GitHub](https://github.com/zhanglabNKU/DePass/tree/main/docs/Tutorials)  
 
-- **Read the Docs**: [DePass Documentation](https://depass-tutorials.readthedocs.io/en/latest/)  
+- **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)  
 
 ---
 
