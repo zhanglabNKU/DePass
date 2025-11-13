@@ -25,5 +25,5 @@ It flexibly supports diverse modality combinations.
 Data
 ----
 
-The raw data used in this study is available at 
+The data used in this study are available at 
 `Data <https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link>`_.
