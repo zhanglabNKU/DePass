@@ -67,6 +67,7 @@ pip install torch-geometric==2.3.1
 pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 ```
 
+#### Typical install time on a "normal" desktop computer
 ---
 
 
