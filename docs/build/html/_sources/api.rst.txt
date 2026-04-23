@@ -1,9 +1,8 @@
-
 API documentation
-==============
+=================
 
 
-DePass.model 
+DePass.model
 -------------------
 
 .. automodule:: DePass.model
@@ -12,7 +11,7 @@ DePass.model
    :show-inheritance:
 
 
-DePass.utils 
+DePass.utils
 -------------------
 
 .. automodule:: DePass.utils
@@ -20,11 +19,11 @@ DePass.utils
    :undoc-members:
    :show-inheritance:
 
-   
-DePass.analyze\_utils 
+
+DePass.utils_analysis
 ----------------------------
 
-.. automodule:: DePass.analyze_utils
+.. automodule:: DePass.utils_analysis
    :members:
    :undoc-members:
    :show-inheritance:

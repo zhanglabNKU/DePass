@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DePass.utils &mdash; DePass 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/readthedocs-custom.css" />
 
   
@@ -84,47 +84,58 @@
 
 <span class="c1">############# Graph Construction #############</span>
 
-<div class="viewcode-block" id="construct_knn_graph_hnsw"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.construct_knn_graph_hnsw">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;l2&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="construct_knn_graph_hnsw"><a class="viewcode-back" href="../../api.html#DePass.utils.construct_knn_graph_hnsw">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">construct_knn_graph_hnsw</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;l2&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a dense k-NN graph adjacency matrix using the HNSW algorithm.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        data (np.ndarray):</span>
-<span class="sd">            Input data matrix of shape ``(num_samples, dim)``.</span>
-<span class="sd">        k (int, optional):</span>
-<span class="sd">            Number of nearest neighbors for each node. Default is ``20``.</span>
-<span class="sd">        space (str, optional):</span>
-<span class="sd">            Distance metric to use. Common options:</span>
-<span class="sd">            - ``&#39;l2&#39;``: Euclidean distance (default).</span>
-<span class="sd">            - ``&#39;ip&#39;``: Inner product.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Input data matrix of shape ``(num_samples, dim)``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        torch.Tensor:</span>
-<span class="sd">            Dense adjacency matrix of shape ``(num_samples, num_samples)`` where</span>
-<span class="sd">            ``adj[i, j] = 1`` if node ``j`` is among the k-nearest neighbors of node ``i``,</span>
-<span class="sd">            otherwise ``0``.</span>
+<span class="sd">    k : int, optional</span>
+<span class="sd">        Number of nearest neighbors for each node. Default is ``20``.</span>
+
+<span class="sd">    space : str, optional</span>
+<span class="sd">        Distance metric to use. Common options:</span>
+
+<span class="sd">        - ``&#39;l2&#39;``: Euclidean distance (default).</span>
+<span class="sd">        - ``&#39;ip&#39;``: Inner product.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.Tensor</span>
+<span class="sd">        Dense adjacency matrix of shape ``(num_samples, num_samples)`` where</span>
+<span class="sd">        ``adj[i, j] = 1`` if node ``j`` is among the k-nearest neighbors of node ``i``,</span>
+<span class="sd">        otherwise ``0``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="kn">import</span><span class="w"> </span><span class="nn">hnswlib</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_dense_adj</span>
+
     <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">num_samples</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+
     <span class="n">p</span> <span class="o">=</span> <span class="n">hnswlib</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">init_index</span><span class="p">(</span><span class="n">max_elements</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">ef_construction</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_items</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_ef</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
     <span class="n">indices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">knn_query</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+
     <span class="n">row_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_samples</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span>
     <span class="n">col_indices</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
     <span class="n">edge_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">row_indices</span><span class="p">,</span> <span class="n">col_indices</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
     <span class="n">adj</span> <span class="o">=</span> <span class="n">to_dense_adj</span><span class="p">(</span><span class="n">edge_index</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="k">return</span> <span class="n">adj</span></div>
 
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">hnswlib</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
 
-<div class="viewcode-block" id="construct_knn_graph_hnsw_sparse"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.construct_knn_graph_hnsw_sparse">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">construct_knn_graph_hnsw_sparse</span><span class="p">(</span>
+<div class="viewcode-block" id="construct_knn_graph_hnsw_sparse"><a class="viewcode-back" href="../../api.html#DePass.utils.construct_knn_graph_hnsw_sparse">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">construct_knn_graph_hnsw_sparse</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="n">space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;l2&#39;</span><span class="p">,</span>
@@ -134,28 +145,37 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a sparse k-NN graph adjacency matrix using the HNSW algorithm.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        data (np.ndarray):</span>
-<span class="sd">            Input data matrix of shape ``(num_samples, dim)``.</span>
-<span class="sd">        k (int, optional):</span>
-<span class="sd">            Number of nearest neighbors for each node. Default is ``20``.</span>
-<span class="sd">        space (str, optional):</span>
-<span class="sd">            Distance metric to use. Options:</span>
-<span class="sd">            - ``&#39;l2&#39;``: Euclidean distance (default).</span>
-<span class="sd">            - ``&#39;ip&#39;``: Inner product.</span>
-<span class="sd">        symmetric (bool, optional):</span>
-<span class="sd">            If ``True``, symmetrize the adjacency matrix (undirected graph).</span>
-<span class="sd">            Default is ``False``.</span>
-<span class="sd">        sparse_format (str, optional):</span>
-<span class="sd">            Output format of the adjacency matrix. Options:</span>
-<span class="sd">            - ``&#39;coo&#39;``: SciPy COO sparse matrix.</span>
-<span class="sd">            - ``&#39;csr&#39;``: SciPy CSR sparse matrix.</span>
-<span class="sd">            - ``&#39;torch_coo&#39;``: PyTorch sparse COO tensor (default).</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Input data matrix of shape ``(num_samples, dim)``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        Union[torch.Tensor, scipy.sparse.spmatrix]:</span>
-<span class="sd">            Sparse adjacency matrix in the requested format.</span>
+<span class="sd">    k : int, optional</span>
+<span class="sd">        Number of nearest neighbors for each node. Default is ``20``.</span>
+
+<span class="sd">    space : str, optional</span>
+<span class="sd">        Distance metric to use. Options:</span>
+
+<span class="sd">        - ``&#39;l2&#39;``: Euclidean distance (default).</span>
+<span class="sd">        - ``&#39;ip&#39;``: Inner product.</span>
+
+<span class="sd">    symmetric : bool, optional</span>
+<span class="sd">        If ``True``, symmetrize the adjacency matrix (undirected graph).</span>
+<span class="sd">        Default is ``False``.</span>
+
+<span class="sd">    sparse_format : str, optional</span>
+<span class="sd">        Output format of the adjacency matrix. Options:</span>
+
+<span class="sd">        - ``&#39;coo&#39;``: SciPy COO sparse matrix.</span>
+<span class="sd">        - ``&#39;csr&#39;``: SciPy CSR sparse matrix.</span>
+<span class="sd">        - ``&#39;torch_coo&#39;``: PyTorch sparse COO tensor (default).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Union[torch.Tensor, scipy.sparse.spmatrix]</span>
+<span class="sd">        Sparse adjacency matrix in the requested format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">num_samples</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
 
@@ -163,9 +183,12 @@
     <span class="n">p</span><span class="o">.</span><span class="n">init_index</span><span class="p">(</span><span class="n">max_elements</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">ef_construction</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_items</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_ef</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
     <span class="n">indices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">knn_query</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+
     <span class="n">row_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_samples</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span>
     <span class="n">col_indices</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
     <span class="n">mask</span> <span class="o">=</span> <span class="n">row_indices</span> <span class="o">!=</span> <span class="n">col_indices</span>
     <span class="n">row_indices</span> <span class="o">=</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
     <span class="n">col_indices</span> <span class="o">=</span> <span class="n">col_indices</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
@@ -180,52 +203,53 @@
     <span class="k">if</span> <span class="n">sparse_format</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;coo&#39;</span><span class="p">,</span> <span class="s1">&#39;csr&#39;</span><span class="p">]:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
         <span class="n">adj</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">row_indices</span><span class="p">),</span> 
+            <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">row_indices</span><span class="p">),</span>
             <span class="p">(</span><span class="n">row_indices</span><span class="p">,</span> <span class="n">col_indices</span><span class="p">),</span>
             <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">sparse_format</span> <span class="o">==</span> <span class="s1">&#39;csr&#39;</span><span class="p">:</span>
             <span class="n">adj</span> <span class="o">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
-    
+
     <span class="k">elif</span> <span class="n">sparse_format</span> <span class="o">==</span> <span class="s1">&#39;torch_coo&#39;</span><span class="p">:</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">row_indices</span><span class="p">),</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">col_indices</span><span class="p">)</span>
         <span class="p">])</span>
         <span class="n">adj</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse_coo_tensor</span><span class="p">(</span>
-            <span class="n">indices</span><span class="p">,</span> 
-            <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> 
+            <span class="n">indices</span><span class="p">,</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
             <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)</span>
         <span class="p">)</span>
-    
+
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid sparse_format: </span><span class="si">{</span><span class="n">sparse_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">adj</span></div>
 
-<div class="viewcode-block" id="to_undirected_geo_data"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.to_undirected_geo_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">to_undirected_geo_data</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">,</span> <span class="n">node_index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch_geometric</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Data</span><span class="p">:</span>
+
+<div class="viewcode-block" id="to_undirected_geo_data"><a class="viewcode-back" href="../../api.html#DePass.utils.to_undirected_geo_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">to_undirected_geo_data</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">,</span> <span class="n">node_index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch_geometric</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Data</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert an adjacency matrix into a PyTorch Geometric ``Data`` object</span>
 <span class="sd">    representing an undirected graph.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adj_shared (Union[np.ndarray, torch.Tensor, torch.sparse.FloatTensor, scipy.sparse.spmatrix]):</span>
-<span class="sd">            The adjacency matrix of the graph. Supported formats:</span>
-<span class="sd">            - Dense NumPy array</span>
-<span class="sd">            - Dense PyTorch tensor</span>
-<span class="sd">            - PyTorch sparse tensor (COO)</span>
-<span class="sd">            - SciPy sparse matrix</span>
-<span class="sd">        node_index (optional):</span>
-<span class="sd">            Node feature matrix or node indices. Will be converted to a PyTorch tensor.</span>
-<span class="sd">            Default is ``None``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adj_shared : Union[np.ndarray, torch.Tensor, torch.sparse.FloatTensor, scipy.sparse.spmatrix]</span>
+<span class="sd">        The adjacency matrix of the graph.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        torch_geometric.data.Data:</span>
-<span class="sd">            Graph object with attributes:</span>
-<span class="sd">            - ``edge_index``: Edge indices of shape ``(2, num_edges)``.</span>
-<span class="sd">            - ``edge_attr``: Edge weights (if any).</span>
-<span class="sd">            - ``node_index``: Node indices or features (if provided).</span>
+<span class="sd">    node_index : optional</span>
+<span class="sd">        Node feature matrix or node indices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch_geometric.data.Data</span>
+<span class="sd">        Graph object with attributes:</span>
+
+<span class="sd">        - ``edge_index``</span>
+<span class="sd">        - ``edge_attr``</span>
+<span class="sd">        - ``node_index``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToUndirected</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">dense_to_sparse</span><span class="p">,</span> <span class="n">from_scipy_sparse_matrix</span>
@@ -243,10 +267,12 @@
         <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_attr</span> <span class="o">=</span> <span class="n">dense_to_sparse</span><span class="p">(</span><span class="n">adj_shared</span><span class="p">)</span>
 
     <span class="n">node_index</span> <span class="o">=</span> <span class="n">_data2input</span><span class="p">(</span><span class="n">node_index</span><span class="p">)</span> <span class="k">if</span> <span class="n">node_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
     <span class="n">geo_dataset</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">edge_index</span><span class="o">=</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_attr</span><span class="o">=</span><span class="n">edge_attr</span><span class="p">,</span> <span class="n">node_index</span><span class="o">=</span><span class="n">node_index</span><span class="p">)</span>
+
     <span class="n">transform</span> <span class="o">=</span> <span class="n">ToUndirected</span><span class="p">()</span>
-    <span class="n">undirected_geo</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">geo_dataset</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">undirected_geo</span></div>
+    <span class="k">return</span> <span class="n">transform</span><span class="p">(</span><span class="n">geo_dataset</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_data2input</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -260,21 +286,23 @@
     <span class="k">return</span> <span class="n">data</span>
 
 
-<div class="viewcode-block" id="sparse_indexing"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.sparse_indexing">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">sparse_indexing</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">np_index</span><span class="p">):</span>
+<div class="viewcode-block" id="sparse_indexing"><a class="viewcode-back" href="../../api.html#DePass.utils.sparse_indexing">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">sparse_indexing</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">np_index</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract a submatrix from a PyTorch sparse adjacency matrix by indexing</span>
 <span class="sd">    a subset of rows and columns.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adj (torch.sparse.FloatTensor):</span>
-<span class="sd">            Input adjacency matrix in PyTorch sparse COO format.</span>
-<span class="sd">        np_index (np.ndarray):</span>
-<span class="sd">            1D array of node indices to keep. Both rows and columns are restricted</span>
-<span class="sd">            to this index set.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adj : torch.sparse.FloatTensor</span>
+<span class="sd">        Input adjacency matrix in PyTorch sparse COO format.</span>
+<span class="sd">    np_index : np.ndarray</span>
+<span class="sd">        1D array of node indices to keep. Both rows and columns are restricted</span>
+<span class="sd">        to this index set.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        torch.sparse.FloatTensor:</span>
-<span class="sd">            Sub-adjacency matrix of shape ``(len(np_index), len(np_index))`` in sparse COO format.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.sparse.FloatTensor</span>
+<span class="sd">        Sub-adjacency matrix of shape ``(len(np_index), len(np_index))`` in sparse COO format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">adj</span> <span class="o">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">coalesce</span><span class="p">()</span>
@@ -310,23 +338,25 @@
 
 <span class="c1">########## Data Preprocessing ##########</span>
 
-<div class="viewcode-block" id="clr_normalize_each_cell"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.clr_normalize_each_cell">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clr_normalize_each_cell</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">:</span>
+<div class="viewcode-block" id="clr_normalize_each_cell"><a class="viewcode-back" href="../../api.html#DePass.utils.clr_normalize_each_cell">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clr_normalize_each_cell</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply CLR (Centered Log Ratio) normalization per cell.</span>
 
 <span class="sd">    Each row of ``adata.X`` (a cell) is normalized independently using</span>
 <span class="sd">    the Seurat v3 CLR approach.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object with count matrix in ``.X``.</span>
-<span class="sd">        inplace (bool, optional):</span>
-<span class="sd">            If ``True`` (default), modify ``adata`` in place.</span>
-<span class="sd">            If ``False``, return a copy.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object with count matrix in ``.X``.</span>
+<span class="sd">    inplace : bool, optional</span>
+<span class="sd">        If ``True`` (default), modify ``adata`` in place.</span>
+<span class="sd">        If ``False``, return a copy.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        anndata.AnnData:</span>
-<span class="sd">            Normalized AnnData object (same object if ``inplace=True``).</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    anndata.AnnData</span>
+<span class="sd">        Normalized AnnData object (same object if ``inplace=True``).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">seurat_clr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -344,26 +374,28 @@
     <span class="k">return</span> <span class="n">adata</span></div>
 
 
-<div class="viewcode-block" id="lsi"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.lsi">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">lsi</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">use_highly_variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="lsi"><a class="viewcode-back" href="../../api.html#DePass.utils.lsi">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">lsi</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">use_highly_variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform Latent Semantic Indexing (LSI), following Seurat v3.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        n_components (int, optional):</span>
-<span class="sd">            Number of LSI components. Default is ``20``.</span>
-<span class="sd">        use_highly_variable (bool, optional):</span>
-<span class="sd">            If ``True``, use only highly variable features</span>
-<span class="sd">            (requires ``adata.var[&#39;highly_variable&#39;]``).</span>
-<span class="sd">            If ``None``, automatically detect. Default is ``None``.</span>
-<span class="sd">        **kwargs:</span>
-<span class="sd">            Additional keyword arguments passed to</span>
-<span class="sd">            ``sklearn.utils.extmath.randomized_svd``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    n_components : int, optional</span>
+<span class="sd">        Number of LSI components. Default is ``20``.</span>
+<span class="sd">    use_highly_variable : bool, optional</span>
+<span class="sd">        If ``True``, use only highly variable features</span>
+<span class="sd">        (requires ``adata.var[&#39;highly_variable&#39;]``).</span>
+<span class="sd">        If ``None``, automatically detect. Default is ``None``.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Additional keyword arguments passed to</span>
+<span class="sd">        ``sklearn.utils.extmath.randomized_svd``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        None:</span>
-<span class="sd">            Results are stored in ``adata.obsm[&#39;X_lsi&#39;]``.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results are stored in ``adata.obsm[&#39;X_lsi&#39;]``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="kn">import</span><span class="w"> </span><span class="nn">sklearn</span>
@@ -385,17 +417,19 @@
     <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s2">&quot;X_lsi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_lsi</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span></div>
 
 
-<div class="viewcode-block" id="tfidf"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.tfidf">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">tfidf</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="tfidf"><a class="viewcode-back" href="../../api.html#DePass.utils.tfidf">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">tfidf</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform TF-IDF normalization (Seurat v3).</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        X (array-like or sparse matrix):</span>
-<span class="sd">            Input count matrix of shape ``(n_cells, n_features)``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : array-like or sparse matrix</span>
+<span class="sd">        Input count matrix of shape ``(n_cells, n_features)``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray or scipy.sparse.spmatrix:</span>
-<span class="sd">            TF-IDF normalized matrix with same shape as input.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray or scipy.sparse.spmatrix</span>
+<span class="sd">        TF-IDF normalized matrix with same shape as input.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span>
@@ -409,25 +443,27 @@
         <span class="n">tf</span> <span class="o">=</span> <span class="n">X</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tf</span> <span class="o">*</span> <span class="n">idf</span></div>
     
-<div class="viewcode-block" id="fix_seed"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.fix_seed">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">fix_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">deterministic_cudnn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">set_hash_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="fix_seed"><a class="viewcode-back" href="../../api.html#DePass.utils.fix_seed">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">fix_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">deterministic_cudnn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">set_hash_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fix random seeds.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        seed (int):</span>
-<span class="sd">            Random seed value.</span>
-<span class="sd">        deterministic_cudnn (bool, optional):</span>
-<span class="sd">            Whether to enable deterministic CUDA operations.</span>
-<span class="sd">            Default is ``True``.</span>
-<span class="sd">        set_hash_seed (bool, optional):</span>
-<span class="sd">            Whether to set the Python hash seed.</span>
-<span class="sd">            Default is ``True``.</span>
-<span class="sd">        mode (str, optional):</span>
-<span class="sd">            If set to ``&#39;strict&#39;``, enforce deterministic algorithms</span>
-<span class="sd">            in PyTorch (may slow down training). Default is empty string.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        Random seed value.</span>
+<span class="sd">    deterministic_cudnn : bool, optional</span>
+<span class="sd">        Whether to enable deterministic CUDA operations.</span>
+<span class="sd">        Default is ``True``.</span>
+<span class="sd">    set_hash_seed : bool, optional</span>
+<span class="sd">        Whether to set the Python hash seed.</span>
+<span class="sd">        Default is ``True``.</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        If set to ``&#39;strict&#39;``, enforce deterministic algorithms</span>
+<span class="sd">        in PyTorch (may slow down training). Default is empty string.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        None</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
    
     <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
@@ -456,7 +492,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">anndata</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnnData</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 
-<div class="viewcode-block" id="filter_genes_keep_list"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.filter_genes_keep_list">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">filter_genes_keep_list</span><span class="p">(</span>
+<div class="viewcode-block" id="filter_genes_keep_list"><a class="viewcode-back" href="../../api.html#DePass.utils.filter_genes_keep_list">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">filter_genes_keep_list</span><span class="p">(</span>
     <span class="n">adata</span><span class="p">:</span> <span class="n">AnnData</span><span class="p">,</span>
     <span class="n">gene_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">min_cells</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -465,22 +501,24 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Filter genes by minimum cell count, but always keep a specified gene list.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        gene_list (list of str):</span>
-<span class="sd">            Genes to keep regardless of minimum cell threshold.</span>
-<span class="sd">        min_cells (float, optional):</span>
-<span class="sd">            Minimum number of cells required per gene.</span>
-<span class="sd">            If ``None`` (default), use ``1%`` of total cells.</span>
-<span class="sd">        copy (bool, optional):</span>
-<span class="sd">            If ``True``, return a copy of the AnnData object.</span>
-<span class="sd">            If ``False``, modify in place.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    gene_list : list of str</span>
+<span class="sd">        Genes to keep regardless of minimum cell threshold.</span>
+<span class="sd">    min_cells : float, optional</span>
+<span class="sd">        Minimum number of cells required per gene.</span>
+<span class="sd">        If ``None`` (default), use ``1%`` of total cells.</span>
+<span class="sd">    copy : bool, optional</span>
+<span class="sd">        If ``True``, return a copy of the AnnData object.</span>
+<span class="sd">        If ``False``, modify in place.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        Optional[anndata.AnnData]:</span>
-<span class="sd">            Filtered AnnData object if ``copy=True``.</span>
-<span class="sd">            Otherwise modifies ``adata`` in place and returns ``None``.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Optional[anndata.AnnData]</span>
+<span class="sd">        Filtered AnnData object if ``copy=True``.</span>
+<span class="sd">        Otherwise modifies ``adata`` in place and returns ``None``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
    
     <span class="k">if</span> <span class="n">min_cells</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -501,31 +539,36 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">adata</span><span class="o">.</span><span class="n">_inplace_subset_var</span><span class="p">(</span><span class="n">final_mask</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="preprocess_data"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.preprocess_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">modality</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_lsi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">n_top_genes</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">filter_adt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">gene_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+
+
+<div class="viewcode-block" id="preprocess_data"><a class="viewcode-back" href="../../api.html#DePass.utils.preprocess_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">modality</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_lsi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">n_top_genes</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">filter_adt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">gene_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Preprocess data according to modality (RNA, ATAC, protein, metabolite).</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        modality (str):</span>
-<span class="sd">            Data modality. Supported:</span>
-<span class="sd">            - ``&#39;rna&#39;``</span>
-<span class="sd">            - ``&#39;atac&#39;``</span>
-<span class="sd">            - ``&#39;protein&#39;``</span>
-<span class="sd">            - ``&#39;metabolite&#39;``</span>
-<span class="sd">        n_lsi (int, optional):</span>
-<span class="sd">            Number of LSI components (ATAC). Default is ``64``.</span>
-<span class="sd">        n_top_genes (int, optional):</span>
-<span class="sd">            Number of top highly variable genes (RNA/Metabolite). Default is ``1000``.</span>
-<span class="sd">        filter_adt (int, optional):</span>
-<span class="sd">            Minimum number of cells required per ADT feature. Default is ``0``.</span>
-<span class="sd">        gene_list (list of str, optional):</span>
-<span class="sd">            Gene list to retain (RNA only).</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    modality : str</span>
+<span class="sd">        Data modality. Supported:</span>
+<span class="sd">        - ``&#39;rna&#39;``</span>
+<span class="sd">        - ``&#39;atac&#39;``</span>
+<span class="sd">        - ``&#39;protein&#39;``</span>
+<span class="sd">        - ``&#39;metabolite&#39;``</span>
+<span class="sd">    n_lsi : int, optional</span>
+<span class="sd">        Number of LSI components (ATAC). Default is ``64``.</span>
+<span class="sd">    n_top_genes : int, optional</span>
+<span class="sd">        Number of top highly variable genes (RNA/Metabolite). Default is ``1000``.</span>
+<span class="sd">    filter_adt : int, optional</span>
+<span class="sd">        Minimum number of cells required per ADT feature. Default is ``0``.</span>
+<span class="sd">    gene_list : list of str, optional</span>
+<span class="sd">        Gene list to retain (RNA only).</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        None:</span>
-<span class="sd">            Results are stored in ``adata.obsm`` (e.g., ``&#39;X_norm&#39;``, ``&#39;X_clr&#39;``).</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results are stored in ``adata.obsm`` (e.g., ``&#39;X_norm&#39;``, ``&#39;X_clr&#39;``).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">adata</span><span class="o">.</span><span class="n">var_names_make_unique</span><span class="p">()</span>
 
@@ -543,12 +586,10 @@
         <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
         <span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">gene_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">highly_var_mask</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;highly_variable&#39;</span><span class="p">]</span>
-            <span class="n">marker_mask</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var_names</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">gene_list</span><span class="p">)</span>
-            <span class="n">hvg</span> <span class="o">=</span> <span class="n">highly_var_mask</span> <span class="o">|</span> <span class="n">marker_mask</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">hvg</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;highly_variable&#39;</span><span class="p">]</span>
+
+        <span class="n">hvg</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">highly_variable</span>
+        <span class="k">if</span> <span class="n">gene_list</span><span class="p">:</span> <span class="n">hvg</span> <span class="o">|=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var_names</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">gene_list</span><span class="p">)</span>
+
         <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;highly_variable_all&#39;</span><span class="p">]</span> <span class="o">=</span><span class="n">hvg</span>
         <span class="n">adata</span><span class="o">.</span><span class="n">obsm</span><span class="p">[</span><span class="s1">&#39;X_norm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[:,</span> <span class="n">hvg</span><span class="p">]</span><span class="o">.</span><span class="n">X</span>
 
@@ -570,21 +611,23 @@
 
 
 
-<div class="viewcode-block" id="normalize_adj_scr"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.normalize_adj_scr">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_adj_scr</span><span class="p">(</span><span class="n">adj</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">,</span> <span class="n">add_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
+<div class="viewcode-block" id="normalize_adj_scr"><a class="viewcode-back" href="../../api.html#DePass.utils.normalize_adj_scr">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_adj_scr</span><span class="p">(</span><span class="n">adj</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">,</span> <span class="n">add_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Symmetric normalization of adjacency matrix in sparse format.</span>
 
 <span class="sd">    Formula: :math:`D^{-1/2} A D^{-1/2}`</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adj (torch.sparse.FloatTensor):</span>
-<span class="sd">            Input adjacency matrix (sparse COO format).</span>
-<span class="sd">        add_loop (bool, optional):</span>
-<span class="sd">            Whether to add self-loops. Default is ``True``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adj : torch.sparse.FloatTensor</span>
+<span class="sd">        Input adjacency matrix (sparse COO format).</span>
+<span class="sd">    add_loop : bool, optional</span>
+<span class="sd">        Whether to add self-loops. Default is ``True``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        torch.sparse.FloatTensor:</span>
-<span class="sd">            Normalized adjacency matrix in sparse COO format.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.sparse.FloatTensor</span>
+<span class="sd">        Normalized adjacency matrix in sparse COO format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_self_loops</span><span class="p">,</span> <span class="n">degree</span>
@@ -614,19 +657,21 @@
     <span class="k">return</span> <span class="n">normalized_adj</span></div>
  
 
-<div class="viewcode-block" id="normalize_adj"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.normalize_adj">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_adj</span><span class="p">(</span><span class="n">adj_matrix</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
+<div class="viewcode-block" id="normalize_adj"><a class="viewcode-back" href="../../api.html#DePass.utils.normalize_adj">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">normalize_adj</span><span class="p">(</span><span class="n">adj_matrix</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Normalize adjacency matrix for dense or sparse tensor input.</span>
 
 <span class="sd">    Formula: :math:`D^{-1/2} (A + I) D^{-1/2}`</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adj_matrix (torch.Tensor):</span>
-<span class="sd">            Input adjacency matrix (dense or sparse tensor).</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adj_matrix : torch.Tensor</span>
+<span class="sd">        Input adjacency matrix (dense or sparse tensor).</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        torch.sparse.FloatTensor:</span>
-<span class="sd">            Normalized adjacency matrix in sparse COO format.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    torch.sparse.FloatTensor</span>
+<span class="sd">        Normalized adjacency matrix in sparse COO format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">adj_matrix</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">adj_matrix</span> <span class="o">=</span> <span class="n">adj_matrix</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">)</span>
@@ -643,25 +688,27 @@
 
 <span class="c1">############# Clustering #############</span>
 
-<div class="viewcode-block" id="mclust_R"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.mclust_R">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mclust_R</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">num_cluster</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modelNames</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;EEE&#39;</span><span class="p">,</span> <span class="n">used_obsm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;emb_pca&#39;</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">:</span>
+<div class="viewcode-block" id="mclust_R"><a class="viewcode-back" href="../../api.html#DePass.utils.mclust_R">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mclust_R</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">num_cluster</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modelNames</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;EEE&#39;</span><span class="p">,</span> <span class="n">used_obsm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;emb_pca&#39;</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform clustering using the R package ``mclust``.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        num_cluster (int):</span>
-<span class="sd">            Number of clusters.</span>
-<span class="sd">        modelNames (str, optional):</span>
-<span class="sd">            Model name for mclust. Default is ``&#39;EEE&#39;``.</span>
-<span class="sd">        used_obsm (str, optional):</span>
-<span class="sd">            Key in ``adata.obsm`` containing input embeddings. Default is ``&#39;emb_pca&#39;``.</span>
-<span class="sd">        random_seed (int, optional):</span>
-<span class="sd">            Random seed. Default is ``2024``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    num_cluster : int</span>
+<span class="sd">        Number of clusters.</span>
+<span class="sd">    modelNames : str, optional</span>
+<span class="sd">        Model name for mclust. Default is ``&#39;EEE&#39;``.</span>
+<span class="sd">    used_obsm : str, optional</span>
+<span class="sd">        Key in ``adata.obsm`` containing input embeddings. Default is ``&#39;emb_pca&#39;``.</span>
+<span class="sd">    random_seed : int, optional</span>
+<span class="sd">        Random seed. Default is ``2024``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        anndata.AnnData:</span>
-<span class="sd">            AnnData object with clustering results in ``adata.obs[&#39;mclust&#39;]``.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    anndata.AnnData</span>
+<span class="sd">        AnnData object with clustering results in ``adata.obs[&#39;mclust&#39;]``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">rpy2.robjects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">robjects</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rpy2.robjects</span><span class="w"> </span><span class="kn">import</span> <span class="n">numpy2ri</span>
@@ -681,22 +728,24 @@
     <span class="k">return</span> <span class="n">adata</span></div>
 
 
-<div class="viewcode-block" id="pca"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.pca">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pca</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">use_reps</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_comps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="pca"><a class="viewcode-back" href="../../api.html#DePass.utils.pca">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pca</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">use_reps</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_comps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform PCA dimensionality reduction.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        use_reps (str, optional):</span>
-<span class="sd">            Key in ``adata.obsm`` specifying input features.</span>
-<span class="sd">            If ``None`` (default), use ``adata.X``.</span>
-<span class="sd">        n_comps (int, optional):</span>
-<span class="sd">            Number of principal components. Default is ``20``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    use_reps : str, optional</span>
+<span class="sd">        Key in ``adata.obsm`` specifying input features.</span>
+<span class="sd">        If ``None`` (default), use ``adata.X``.</span>
+<span class="sd">    n_comps : int, optional</span>
+<span class="sd">        Number of principal components. Default is ``20``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray:</span>
-<span class="sd">            PCA-transformed features of shape ``(n_samples, n_comps)``.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        PCA-transformed features of shape ``(n_samples, n_comps)``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.decomposition</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">csc_matrix</span><span class="p">,</span> <span class="n">csr_matrix</span>
@@ -713,17 +762,19 @@
 
 
 
-<div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.norm">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">norm</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../api.html#DePass.utils.norm">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">norm</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply L2 normalization row-wise.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        array (np.ndarray):</span>
-<span class="sd">            Input 2D array.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : np.ndarray</span>
+<span class="sd">        Input 2D array.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray:</span>
-<span class="sd">            Row-normalized array with unit L2 norm.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Row-normalized array with unit L2 norm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
     <span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -732,38 +783,69 @@
     <span class="k">return</span> <span class="n">normalized_array</span></div>
 
 
-<div class="viewcode-block" id="clustering"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.clustering">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clustering</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;emb&#39;</span><span class="p">,</span> <span class="n">add_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;mclust&#39;</span><span class="p">,</span> 
+<div class="viewcode-block" id="clustering"><a class="viewcode-back" href="../../api.html#DePass.utils.clustering">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">clustering</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;emb&#39;</span><span class="p">,</span> <span class="n">add_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;mclust&#39;</span><span class="p">,</span> 
                <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">use_pca</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">n_comps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">use_X</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform clustering using different algorithms (mclust, leiden, kmeans).</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        n_clusters (int, optional):</span>
-<span class="sd">            Number of clusters. Default is ``7``.</span>
-<span class="sd">        key (str, optional):</span>
-<span class="sd">            Key in ``adata.obsm`` specifying input embeddings. Default is ``&#39;emb&#39;``.</span>
-<span class="sd">        add_key (str, optional):</span>
-<span class="sd">            If provided, store results under this key in ``adata.obs``.</span>
-<span class="sd">        method (str, optional):</span>
-<span class="sd">            Clustering algorithm: ``&#39;mclust&#39;`` (default), ``&#39;leiden&#39;``, ``&#39;kmeans&#39;``.</span>
-<span class="sd">        start (float, optional):</span>
-<span class="sd">            Minimum resolution for Leiden search. Default is ``0.05``.</span>
-<span class="sd">        end (float, optional):</span>
-<span class="sd">            Maximum resolution for Leiden search. Default is ``3.0``.</span>
-<span class="sd">        use_pca (bool, optional):</span>
-<span class="sd">            Whether to apply PCA before clustering. Default is ``False``.</span>
-<span class="sd">        n_comps (int, optional):</span>
-<span class="sd">            Number of PCA components if ``use_pca=True``. Default is ``20``.</span>
-<span class="sd">        use_X (bool, optional):</span>
-<span class="sd">            Whether to use ``adata.X`` instead of ``adata.obsm`` features. Default is ``False``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        None:</span>
-<span class="sd">            Results are stored in ``adata.obs``.</span>
+<span class="sd">    n_clusters : int, optional</span>
+<span class="sd">        Number of clusters. Default is ``7``.</span>
+
+<span class="sd">    key : str, optional</span>
+<span class="sd">        Key in ``adata.obsm`` specifying input embeddings.</span>
+<span class="sd">        Default is ``&#39;emb&#39;``.</span>
+
+<span class="sd">    add_key : str, optional</span>
+<span class="sd">        If provided, store results under this key in ``adata.obs``.</span>
+
+<span class="sd">    method : str, optional</span>
+<span class="sd">        Clustering algorithm. One of:</span>
+
+<span class="sd">        - ``&#39;mclust&#39;`` (default)</span>
+<span class="sd">        - ``&#39;leiden&#39;``</span>
+<span class="sd">        - ``&#39;kmeans&#39;``</span>
+
+<span class="sd">    start : float, optional</span>
+<span class="sd">        Minimum resolution for Leiden search. Default is ``0.05``.</span>
+
+<span class="sd">    end : float, optional</span>
+<span class="sd">        Maximum resolution for Leiden search. Default is ``3.0``.</span>
+
+<span class="sd">    use_pca : bool, optional</span>
+<span class="sd">        Whether to apply PCA before clustering. Default is ``False``.</span>
+
+<span class="sd">    n_comps : int, optional</span>
+<span class="sd">        Number of PCA components if ``use_pca=True``. Default is ``20``.</span>
+
+<span class="sd">    use_X : bool, optional</span>
+<span class="sd">        Whether to use ``adata.X`` instead of ``adata.obsm`` features.</span>
+<span class="sd">        Default is ``False``.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results are stored in ``adata.obs``.</span>
+
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function can be used for clustering on the integrated embedding</span>
+<span class="sd">    generated by the DePass model (``.embedding``).</span>
+
+<span class="sd">    The clustering results saved in ``adata.obs`` can be directly used for:</span>
+
+<span class="sd">    - Visualization (e.g. ``DePass.utils_analysis.plot_spatial``)</span>
+
+<span class="sd">    - Differential gene expression analysis (e.g. ``DePass.utils_analysis.rank_genes_groups``)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
+    
     <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span>
 
     <span class="k">if</span> <span class="n">use_X</span><span class="p">:</span>
@@ -806,40 +888,43 @@
             <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">add_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;kmeans&#39;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="binary_search_res"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.binary_search_res">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">binary_search_res</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;leiden&#39;</span><span class="p">,</span> <span class="n">use_rep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;emb&#39;</span><span class="p">,</span> 
+<div class="viewcode-block" id="binary_search_res"><a class="viewcode-back" href="../../api.html#DePass.utils.binary_search_res">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">binary_search_res</span><span class="p">(</span><span class="n">adata</span><span class="p">:</span> <span class="n">anndata</span><span class="o">.</span><span class="n">AnnData</span><span class="p">,</span> <span class="n">n_clusters</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;leiden&#39;</span><span class="p">,</span> <span class="n">use_rep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;emb&#39;</span><span class="p">,</span> 
                      <span class="n">res_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">res_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="p">,</span> 
                      <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Binary search to find resolution parameter yielding target number of clusters.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        adata (anndata.AnnData):</span>
-<span class="sd">            Input AnnData object.</span>
-<span class="sd">        n_clusters (int):</span>
-<span class="sd">            Target number of clusters.</span>
-<span class="sd">        method (str, optional):</span>
-<span class="sd">            Clustering method: ``&#39;leiden&#39;`` or ``&#39;louvain&#39;``.</span>
-<span class="sd">            Default is ``&#39;leiden&#39;``.</span>
-<span class="sd">        use_rep (str, optional):</span>
-<span class="sd">            Key in ``adata.obsm`` for input embeddings. Default is ``&#39;emb&#39;``.</span>
-<span class="sd">        res_min (float, optional):</span>
-<span class="sd">            Minimum resolution. Default is ``0.01``.</span>
-<span class="sd">        res_max (float, optional):</span>
-<span class="sd">            Maximum resolution. Default is ``3.0``.</span>
-<span class="sd">        max_iter (int, optional):</span>
-<span class="sd">            Maximum number of iterations. Default is ``100``.</span>
-<span class="sd">        tol (float, optional):</span>
-<span class="sd">            Allowed deviation from target cluster count. Default is ``1e-2``.</span>
-<span class="sd">        random_state (int, optional):</span>
-<span class="sd">            Random seed. Default is ``2024``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    adata : anndata.AnnData</span>
+<span class="sd">        Input AnnData object.</span>
+<span class="sd">    n_clusters : int</span>
+<span class="sd">        Target number of clusters.</span>
+<span class="sd">    method : str, optional</span>
+<span class="sd">        Clustering method: ``&#39;leiden&#39;`` or ``&#39;louvain&#39;``.</span>
+<span class="sd">        Default is ``&#39;leiden&#39;``.</span>
+<span class="sd">    use_rep : str, optional</span>
+<span class="sd">        Key in ``adata.obsm`` for input embeddings. Default is ``&#39;emb&#39;``.</span>
+<span class="sd">    res_min : float, optional</span>
+<span class="sd">        Minimum resolution. Default is ``0.01``.</span>
+<span class="sd">    res_max : float, optional</span>
+<span class="sd">        Maximum resolution. Default is ``3.0``.</span>
+<span class="sd">    max_iter : int, optional</span>
+<span class="sd">        Maximum number of iterations. Default is ``100``.</span>
+<span class="sd">    tol : float, optional</span>
+<span class="sd">        Allowed deviation from target cluster count. Default is ``1e-2``.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        Random seed. Default is ``2024``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        float:</span>
-<span class="sd">            Optimal resolution parameter.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Optimal resolution parameter.</span>
 
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError:</span>
-<span class="sd">            If the target cluster count cannot be reached.</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the target cluster count cannot be reached.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
@@ -873,29 +958,30 @@
 
 <span class="c1">################# Evaluation ###################</span>
 
-<div class="viewcode-block" id="super_eval"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.super_eval">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">super_eval</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_true</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="super_eval"><a class="viewcode-back" href="../../api.html#DePass.utils.super_eval">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">super_eval</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_true</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluate clustering performance using supervised metrics.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        y_pred (array-like):</span>
-<span class="sd">            Predicted cluster labels (numeric, string, or categorical).</span>
-<span class="sd">        y_true (array-like):</span>
-<span class="sd">            True cluster labels (numeric, string, or categorical).</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_pred : array-like</span>
+<span class="sd">        Predicted cluster labels (numeric, string, or categorical).</span>
+<span class="sd">    y_true : array-like</span>
+<span class="sd">        True cluster labels (numeric, string, or categorical).</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        dict:</span>
-<span class="sd">            Dictionary of metrics:</span>
-<span class="sd">            - ``AMI``: Adjusted Mutual Information</span>
-<span class="sd">            - ``NMI``: Normalized Mutual Information</span>
-<span class="sd">            - ``ARI``: Adjusted Rand Index</span>
-<span class="sd">            - ``Homogeneity``: Homogeneity score</span>
-<span class="sd">            - ``V-measure``: V-measure (homogeneity/completeness harmonic mean)</span>
-<span class="sd">            - ``Mutual Information``: Raw mutual information</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of metrics:</span>
+<span class="sd">        - ``AMI``: Adjusted Mutual Information</span>
+<span class="sd">        - ``NMI``: Normalized Mutual Information</span>
+<span class="sd">        - ``ARI``: Adjusted Rand Index</span>
+<span class="sd">        - ``Homogeneity``: Homogeneity score</span>
 
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError:</span>
-<span class="sd">            If lengths mismatch, or if labels contain NaN/inf values.</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If lengths mismatch, or if labels contain NaN/inf values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics</span>
@@ -931,38 +1017,39 @@
         <span class="s1">&#39;AMI&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">adjusted_mutual_info_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
         <span class="s1">&#39;NMI&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">normalized_mutual_info_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
         <span class="s1">&#39;ARI&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">adjusted_rand_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
-        <span class="s1">&#39;Homogeneity&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">homogeneity_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
-        <span class="s1">&#39;V-measure&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">v_measure_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
-        <span class="s1">&#39;Mutual Information&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">mutual_info_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span>
+        <span class="s1">&#39;Homogeneity&#39;</span><span class="p">:</span> <span class="n">metrics</span><span class="o">.</span><span class="n">homogeneity_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">results</span></div>
 
 
-<div class="viewcode-block" id="unsuper_eval"><a class="viewcode-back" href="../../api/DePass.html#DePass.utils.unsuper_eval">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">unsuper_eval</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="unsuper_eval"><a class="viewcode-back" href="../../api.html#DePass.utils.unsuper_eval">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">unsuper_eval</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluate clustering performance using unsupervised metrics.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        X (array-like):</span>
-<span class="sd">            Feature matrix of shape ``(n_samples, n_features)``.</span>
-<span class="sd">        y (array-like):</span>
-<span class="sd">            Predicted cluster labels of shape ``(n_samples,)``.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : array-like</span>
+<span class="sd">        Feature matrix of shape ``(n_samples, n_features)``.</span>
+<span class="sd">    y : array-like</span>
+<span class="sd">        Predicted cluster labels of shape ``(n_samples,)``.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        dict:</span>
-<span class="sd">            Dictionary of metrics:</span>
-<span class="sd">            - ``ASW``: Adjusted Silhouette Width (rescaled to [0,1])</span>
-<span class="sd">            - ``DBI``: Davies–Bouldin Index (lower is better)</span>
-<span class="sd">            - ``CHI``: Calinski–Harabasz Index (higher is better)</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of metrics:</span>
+<span class="sd">        - ``ASW``: Adjusted Silhouette Width (rescaled to [0,1])</span>
+<span class="sd">        - ``DBI``: Davies-Bouldin Index (lower is better)</span>
+<span class="sd">          </span>
 
-<span class="sd">    Raises:</span>
-<span class="sd">        AssertionError:</span>
-<span class="sd">            If ``X`` or ``y`` contains NaN values.</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    AssertionError</span>
+<span class="sd">        If ``X`` or ``y`` contains NaN values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-    <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">silhouette_score</span><span class="p">,</span> <span class="n">calinski_harabasz_score</span><span class="p">,</span> <span class="n">davies_bouldin_score</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">silhouette_score</span><span class="p">,</span> <span class="n">davies_bouldin_score</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
@@ -975,7 +1062,6 @@
     <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;ASW&#39;</span><span class="p">:</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">silhouette_score</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
         <span class="s1">&#39;DBI&#39;</span><span class="p">:</span> <span class="n">davies_bouldin_score</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span>
-        <span class="s1">&#39;CHI&#39;</span><span class="p">:</span> <span class="n">calinski_harabasz_score</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">results</span></div>
@@ -988,7 +1074,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Zhang lab.</p>
+    <p>&#169; Copyright zhanglabNKU.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

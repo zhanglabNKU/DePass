@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath('..'))
 import DePass
 
 project = 'DePass'
-author = 'lwyx'
+author = 'W. Li, Y. Jiang'
 copyright = 'zhanglabNKU'
 release = '0.1.0'
 
@@ -58,4 +58,4 @@ html_theme_options = {
 
 # html_static_path = ['_static']
 html_css_files = ["readthedocs-custom.css"]
-# html_logo = "_static/logo.png"  # 如果有 logo 再启用
+# html_logo = "_static/logo.png" 

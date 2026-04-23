@@ -23,35 +23,16 @@ class DePassAE(Module):
 
         self.gcn_encoder_s1 = GCN(self.mlplayer1[-1],self.dim)
         self.gcn_encoder_s2 = GCN(self.mlplayer2[-1],self.dim) 
-        self.gcn_encoder_con = GCN(self.mlplayer1[-1]+self.mlplayer1[-1],self.dim) 
-
-        # self._gcn_encoder_s1 =  GCN(self.dim,self.dim)
-        # self._gcn_encoder_s2 =  GCN(self.dim,self.dim) 
-        # self._gcn_encoder_con = GCN(self.dim,self.dim) 
-
-        # self.__gcn_encoder_s1 =  GCN(self.dim,self.dim)
-        # self.__gcn_encoder_s2 =  GCN(self.dim,self.dim) 
-        # self.__gcn_encoder_con = GCN(self.dim,self.dim) 
+        self.gcn_encoder_con = GCN(self.mlplayer1[-1]+self.mlplayer2[-1],self.dim) 
 
         self.Eff_Att1 = EfficientAdditiveAttention(self.dim)
         self.Eff_Att2 = EfficientAdditiveAttention(self.dim)
 
         self.atten_cross = AttentionLayer(2 * self.dim, 2 * self.dim)
-        # self.lin1 = nn.Linear(2 * self.dim,32)
-        # self.elu = nn.ELU()
-        # self.lin2 = nn.Linear(64,32)
-        # self.atten_cross = AttentionLayer(1 * self.dim, 1 * self.dim)
-
-        # self._gcn_decoder1 = GCN(2 * self.dim, 2 * self.dim)
-        # self._gcn_decoder2 = GCN(2 * self.dim, 2 * self.dim)
-        # self.__gcn_decoder1 = GCN(2 * self.dim, 2 * self.dim)
-        # self.__gcn_decoder2 = GCN(2 * self.dim, 2 * self.dim)
 
         self.gcn_decoder1 = GCN(2 * self.dim, dim_input1)
         self.gcn_decoder2 = GCN(2 * self.dim, dim_input2)
 
-        # self.gcn_decoder1 = GCN(32, dim_input1)
-        # self.gcn_decoder2 = GCN(32, dim_input2)
 
     def mlp_forward(self,x1,z1,x2,z2):
         x1 = self.mlp_encoder1(x1)
@@ -71,14 +52,6 @@ class DePassAE(Module):
         s2 = self.gcn_encoder_s2(e2_batch, adj2_batch)
         f =  self.gcn_encoder_con(E_fusion, adj_shared_batch)
 
-        # s1 = self._gcn_encoder_s1(s1, adj1_batch)
-        # s2 = self._gcn_encoder_s2(s2, adj2_batch)
-        # f =  self._gcn_encoder_con(f, adj_shared_batch)
-
-        # s1 = self.__gcn_encoder_s1(s1, adj1_batch)
-        # s2 = self.__gcn_encoder_s2(s2, adj2_batch)
-        # f =  self.__gcn_encoder_con(f, adj_shared_batch)
-
         s1 = self.Eff_Att1(f,s1) 
         s2 = self.Eff_Att2(f,s2) 
      
@@ -86,24 +59,10 @@ class DePassAE(Module):
         z1 = torch.cat([s1, f], dim=-1)
         z2 = torch.cat([s2, f], dim=-1)
 
-        # z1=s1
-        # z2=s2
         z, alpha_omics_1_2 = self.atten_cross(z1, z2)
-        # z = self.lin1(z)
-        # z = self.elu(z)
-        # z = self.lin2(z)
-
-        # emb_recon1 = self._gcn_decoder1(z, adj_shared_batch)
-        # emb_recon2 = self._gcn_decoder2(z, adj_shared_batch)
-
-        # emb_recon1 = self.__gcn_decoder1(z, adj_shared_batch)
-        # emb_recon2 = self.__gcn_decoder2(z, adj_shared_batch)
-
+       
         emb_recon1 = self.gcn_decoder1(z, adj_shared_batch)
         emb_recon2 = self.gcn_decoder2(z, adj_shared_batch)
-
-        # emb_reconz1 = self.gcn_decoder1(z1, adj_shared_batch)
-        # emb_reconz2 = self.gcn_decoder2(z2, adj_shared_batch)
 
         results = {
             'z1': z1,
@@ -130,8 +89,6 @@ class DePassAE(Module):
 
         z1 = torch.cat([s1, f], dim=-1)
         z2 = torch.cat([s2, f], dim=-1)
-        # z1=s1
-        # z2=s2
 
         z, alpha_omics_1_2 = self.atten_cross(z1, z2)
 

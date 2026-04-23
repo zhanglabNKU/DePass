@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 11: 10x Multiome (PBMC 10k) &mdash; DePass 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/readthedocs-custom.css" />
 
@@ -53,13 +53,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%201%20Spatial%20CITE-seq%20%28Human%20tonsil%29.html">Tutorial 1: Spatial CITE-seq (Human Tonsil)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%202%20SPOTS%20%28Mouse%20spleen%29.html">Tutorial 2: SPOTS (Mouse Spleen dataset)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28PD%20mouse%20A%29.html">Tutorial 3: Visium-MALDI (PD Mouse A)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28PD%20mouse%20B%29.html">Tutorial 4: Visium-MALDI (PD Mouse B)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28PD%20mouse%20C%29.html">Tutorial 5: Visium-MALDI (PD Mouse C)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20brain%29.html">Tutorial 6: MISAR-seq (Mouse brain)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28Mouse%20brain%20A%29.html">Tutorial 3: Visium-MALDI (Mouse brain A)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28Mouse%20brain%20B%29.html">Tutorial 4: Visium-MALDI (Mouse brain B)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28Mouse%20brain%20C%29.html">Tutorial 5: Visium-MALDI (Mouse brain C)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20embryo%20brain%29.html">Tutorial 6: MISAR-seq (Mouse embryo brain)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%207%20Spatial%20Stereo-CITE-seq%20%28CRC%29.html">Tutorial 7: Spatial Stereo-CITE-seq (CRC)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%208%20Spatial-Mux-seq%20%28Mouse%20embryo%29.html">Tutorial 8: Spatial-Mux-seq (Mouse embryo)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%20KO4%29.html">Tutorial 9: CITE-seq (GSE163120 KO4)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%29.html">Tutorial 9: CITE-seq (GSE163120)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2010%2010x%20Multiome%20%28PBMC3k%29.html">Tutorial 10: 10x Multiome (PBMC 3k)</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 11: 10x Multiome (PBMC 10k)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Preparation">Preparation</a></li>
@@ -105,18 +105,15 @@
 <section id="Preparation">
 <h2>Preparation<a class="headerlink" href="#Preparation" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">scanpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="c1"># sys.path.append(&#39;/home/jyx/DePass/&#39;)</span>
 
@@ -262,11 +259,11 @@ fitting ...
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">super_eval</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
 <span class="n">re</span> <span class="o">=</span> <span class="n">super_eval</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;DePass&#39;</span><span class="p">],</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">])</span>
 <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;/re.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.6f</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">re</span><span class="p">)</span>
@@ -278,16 +275,8 @@ fitting ...
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;AMI&#39;: 0.7318717379655737, &#39;NMI&#39;: 0.7336733748430829, &#39;ARI&#39;: 0.5298944194207265, &#39;Homogeneity&#39;: 0.7695730222733254, &#39;V-measure&#39;: 0.7336733748430828, &#39;Mutual Information&#39;: 1.7881842958672314}
+{&#39;AMI&#39;: 0.7318717379655737, &#39;NMI&#39;: 0.7336733748430829, &#39;ARI&#39;: 0.5298944194207265, &#39;Homogeneity&#39;: 0.7695730222733254}
 </pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">adata</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;/home/jyx/DePass-main/outputs copy/dataset_PBMC10k/run/adata.h5ad&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
@@ -326,7 +315,7 @@ fitting ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/Tutorials_Tutorial_11_10x_Multiome_%28PBMC10k%29_13_0.png" src="../_images/Tutorials_Tutorial_11_10x_Multiome_%28PBMC10k%29_13_0.png" />
+<img alt="../_images/Tutorials_Tutorial_11_10x_Multiome_%28PBMC10k%29_12_0.png" src="../_images/Tutorials_Tutorial_11_10x_Multiome_%28PBMC10k%29_12_0.png" />
 </div>
 </div>
 </section>
@@ -343,7 +332,7 @@ fitting ...
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Zhang lab.</p>
+    <p>&#169; Copyright zhanglabNKU.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

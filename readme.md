@@ -1,5 +1,8 @@
 
 # DePass
+<!-- <p align="left">
+  <img src=./docs/logo.png higth="100" width="200"/>
+</p> -->
 
 
 [![python >3.8.20](https://img.shields.io/badge/python-3.8.20-blue)](https://www.python.org/) 
@@ -19,6 +22,23 @@ For detailed tutorials, you can refer to the following resources:
 
 - **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)  
 
+
+
+---
+
+
+## Downstream Tasks & Evaluations
+
+We provide complete scripts for all downstream tasks and evaluations in the repository, organized as follows:
+
+- **Spatial niche inference**
+- **Cell-cell communication analysis**
+- **Trajectory inference**
+- **Omics data prediction**
+- **Enhancement evaluation**
+
+All scripts are available in the `scripts` directory:[downstream scripts](scripts).
+
 ---
 
 ## DePass Installation
@@ -33,21 +53,14 @@ conda activate DePass
 
 ---
 
-#### Option A : Install DePass from PyPI
-
-```bash
-pip install DePass
-```
-
----
-
-#### Option B : Install DePass from GitHub
+#### Install DePass from GitHub
 
 ```bash
 git clone https://github.com/zhanglabNKU/DePass.git
 cd DePass
-pip install depass-0.0.24-py3-none-any.whl
+pip install depass-0.0.26-py3-none-any.whl
 ```
+
 #### Additional Dependencies
 
 Because DePass leverages `mclust` for clustering, installing R, the `rpy2` Python interface, and the `mclust` R package is recommended.
@@ -101,4 +114,4 @@ mclust
 
 ## Data
 
-The data used in this study are available at [Data](https://drive.google.com/drive/folders/1NfBDU-1E2T7CerViyK2TvbnWfsta6Q3r?usp=drive_link).
+The data used in this study are available at [Data](https://drive.google.com/drive/u/1/folders/1R_MhU9S1wCXDawPQm2Mxb98jz3KZPo9S).

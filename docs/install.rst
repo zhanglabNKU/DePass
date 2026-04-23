@@ -11,21 +11,13 @@ DePass Installation
 
 ----
 
-**Option A : Install DePass from PyPI**
-
-.. code-block:: bash
-
-   pip install DePass
-
-----
-
-**Option B : Install DePass from GitHub**
+**Install DePass from GitHub**
 
 .. code-block:: bash
 
    git clone https://github.com/zhanglabNKU/DePass.git
    cd DePass
-   pip install depass-0.0.24-py3-none-any.whl
+   pip install depass-0.0.26-py3-none-any.whl
 
 **Additional Dependencies**
 

@@ -23,22 +23,18 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
     "import scanpy as sc\n",
     "import torch\n",
-    "import random\n",
     "import pandas as pd\n",
-    "import numpy as np\n",
     "import os\n",
     "import warnings\n",
     "warnings.filterwarnings(\"ignore\")\n",
-    "\n",
     "import sys\n",
     "# sys.path.append('/home/jyx/DePass/')\n",
-    "\n",
     "from DePass.utils import *\n",
     "fix_seed(2024)  \n",
     "\n",
@@ -187,13 +183,13 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "{'AMI': 0.7104595717830307, 'NMI': 0.7107990601869504, 'ARI': 0.5768430368457738, 'Homogeneity': 0.7509261272157207, 'V-measure': 0.7107990601869502, 'Mutual Information': 1.4790815564191038}\n"
+      "{'AMI': 0.7104595717830307, 'NMI': 0.7107990601869504, 'ARI': 0.5768430368457738, 'Homogeneity': 0.7509261272157207}\n"
      ]
     }
    ],
    "source": [
     "from DePass.utils import super_eval\n",
-    "import pandas as pd\n",
+    "\n",
     "re = super_eval(adata.obs['DePass'],adata.obs['Y'])\n",
     "pd.DataFrame(list(re.items()), columns=['metric', 'Value']).to_csv(path + '/re.csv', sep='\\t', index=True, float_format='%.6f')\n",
     "print(re)"

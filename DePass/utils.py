@@ -13,36 +13,47 @@ def construct_knn_graph_hnsw(data: np.ndarray, k: int = 20, space: str = r'l2') 
     """
     Construct a dense k-NN graph adjacency matrix using the HNSW algorithm.
 
-    Args:
-        data (np.ndarray):
-            Input data matrix of shape ``(num_samples, dim)``.
-        k (int, optional):
-            Number of nearest neighbors for each node. Default is ``20``.
-        space (str, optional):
-            Distance metric to use. Common options:
-            - ``'l2'``: Euclidean distance (default).
-            - ``'ip'``: Inner product.
+    Parameters
+    ----------
+    data : np.ndarray
+        Input data matrix of shape ``(num_samples, dim)``.
 
-    Returns:
-        torch.Tensor:
-            Dense adjacency matrix of shape ``(num_samples, num_samples)`` where
-            ``adj[i, j] = 1`` if node ``j`` is among the k-nearest neighbors of node ``i``,
-            otherwise ``0``.
+    k : int, optional
+        Number of nearest neighbors for each node. Default is ``20``.
+
+    space : str, optional
+        Distance metric to use. Common options:
+
+        - ``'l2'``: Euclidean distance (default).
+        - ``'ip'``: Inner product.
+
+    Returns
+    -------
+    torch.Tensor
+        Dense adjacency matrix of shape ``(num_samples, num_samples)`` where
+        ``adj[i, j] = 1`` if node ``j`` is among the k-nearest neighbors of node ``i``,
+        otherwise ``0``.
     """
 
     import hnswlib
     from torch_geometric.utils import to_dense_adj
+
     data = data.astype(np.float32)
     num_samples, dim = data.shape
+
     p = hnswlib.Index(space=space, dim=dim)
     p.init_index(max_elements=num_samples, ef_construction=200, M=16)
     p.add_items(data)
     p.set_ef(50)
+
     indices, _ = p.knn_query(data, k=k)
+
     row_indices = np.repeat(np.arange(num_samples), k)
     col_indices = indices.flatten()
+
     edge_index = torch.tensor([row_indices, col_indices], dtype=torch.long)
     adj = to_dense_adj(edge_index)[0]
+
     return adj
 
 
@@ -59,28 +70,37 @@ def construct_knn_graph_hnsw_sparse(
     """
     Construct a sparse k-NN graph adjacency matrix using the HNSW algorithm.
 
-    Args:
-        data (np.ndarray):
-            Input data matrix of shape ``(num_samples, dim)``.
-        k (int, optional):
-            Number of nearest neighbors for each node. Default is ``20``.
-        space (str, optional):
-            Distance metric to use. Options:
-            - ``'l2'``: Euclidean distance (default).
-            - ``'ip'``: Inner product.
-        symmetric (bool, optional):
-            If ``True``, symmetrize the adjacency matrix (undirected graph).
-            Default is ``False``.
-        sparse_format (str, optional):
-            Output format of the adjacency matrix. Options:
-            - ``'coo'``: SciPy COO sparse matrix.
-            - ``'csr'``: SciPy CSR sparse matrix.
-            - ``'torch_coo'``: PyTorch sparse COO tensor (default).
+    Parameters
+    ----------
+    data : np.ndarray
+        Input data matrix of shape ``(num_samples, dim)``.
 
-    Returns:
-        Union[torch.Tensor, scipy.sparse.spmatrix]:
-            Sparse adjacency matrix in the requested format.
+    k : int, optional
+        Number of nearest neighbors for each node. Default is ``20``.
+
+    space : str, optional
+        Distance metric to use. Options:
+
+        - ``'l2'``: Euclidean distance (default).
+        - ``'ip'``: Inner product.
+
+    symmetric : bool, optional
+        If ``True``, symmetrize the adjacency matrix (undirected graph).
+        Default is ``False``.
+
+    sparse_format : str, optional
+        Output format of the adjacency matrix. Options:
+
+        - ``'coo'``: SciPy COO sparse matrix.
+        - ``'csr'``: SciPy CSR sparse matrix.
+        - ``'torch_coo'``: PyTorch sparse COO tensor (default).
+
+    Returns
+    -------
+    Union[torch.Tensor, scipy.sparse.spmatrix]
+        Sparse adjacency matrix in the requested format.
     """
+
     data = data.astype(np.float32)
     num_samples, dim = data.shape
 
@@ -88,9 +108,12 @@ def construct_knn_graph_hnsw_sparse(
     p.init_index(max_elements=num_samples, ef_construction=200, M=16)
     p.add_items(data)
     p.set_ef(50)
+
     indices, _ = p.knn_query(data, k=k)
+
     row_indices = np.repeat(np.arange(num_samples), k)
     col_indices = indices.flatten()
+
     mask = row_indices != col_indices
     row_indices = row_indices[mask]
     col_indices = col_indices[mask]
@@ -105,52 +128,53 @@ def construct_knn_graph_hnsw_sparse(
     if sparse_format in ['coo', 'csr']:
         import scipy.sparse as sp
         adj = sp.coo_matrix(
-            np.ones_like(row_indices), 
+            np.ones_like(row_indices),
             (row_indices, col_indices),
             shape=(num_samples, num_samples)
         )
         if sparse_format == 'csr':
             adj = adj.tocsr()
-    
+
     elif sparse_format == 'torch_coo':
         indices = torch.vstack([
             torch.LongTensor(row_indices),
             torch.LongTensor(col_indices)
         ])
         adj = torch.sparse_coo_tensor(
-            indices, 
-            torch.ones(indices.shape[1]), 
+            indices,
+            torch.ones(indices.shape[1]),
             size=(num_samples, num_samples)
         )
-    
+
     else:
         raise ValueError(f"Invalid sparse_format: {sparse_format}")
 
     return adj
+
 
 def to_undirected_geo_data(adj_shared, node_index=None) -> torch_geometric.data.Data:
     """
     Convert an adjacency matrix into a PyTorch Geometric ``Data`` object
     representing an undirected graph.
 
-    Args:
-        adj_shared (Union[np.ndarray, torch.Tensor, torch.sparse.FloatTensor, scipy.sparse.spmatrix]):
-            The adjacency matrix of the graph. Supported formats:
-            - Dense NumPy array
-            - Dense PyTorch tensor
-            - PyTorch sparse tensor (COO)
-            - SciPy sparse matrix
-        node_index (optional):
-            Node feature matrix or node indices. Will be converted to a PyTorch tensor.
-            Default is ``None``.
+    Parameters
+    ----------
+    adj_shared : Union[np.ndarray, torch.Tensor, torch.sparse.FloatTensor, scipy.sparse.spmatrix]
+        The adjacency matrix of the graph.
 
-    Returns:
-        torch_geometric.data.Data:
-            Graph object with attributes:
-            - ``edge_index``: Edge indices of shape ``(2, num_edges)``.
-            - ``edge_attr``: Edge weights (if any).
-            - ``node_index``: Node indices or features (if provided).
+    node_index : optional
+        Node feature matrix or node indices.
+
+    Returns
+    -------
+    torch_geometric.data.Data
+        Graph object with attributes:
+
+        - ``edge_index``
+        - ``edge_attr``
+        - ``node_index``
     """
+
     from torch_geometric.data import Data
     from torch_geometric.transforms import ToUndirected
     from torch_geometric.utils import dense_to_sparse, from_scipy_sparse_matrix
@@ -168,10 +192,12 @@ def to_undirected_geo_data(adj_shared, node_index=None) -> torch_geometric.data.
         edge_index, edge_attr = dense_to_sparse(adj_shared)
 
     node_index = _data2input(node_index) if node_index is not None else None
+
     geo_dataset = Data(edge_index=edge_index, edge_attr=edge_attr, node_index=node_index)
+
     transform = ToUndirected()
-    undirected_geo = transform(geo_dataset)
-    return undirected_geo
+    return transform(geo_dataset)
+
 
 
 def _data2input(data):
@@ -190,16 +216,18 @@ def sparse_indexing(adj, np_index):
     Extract a submatrix from a PyTorch sparse adjacency matrix by indexing
     a subset of rows and columns.
 
-    Args:
-        adj (torch.sparse.FloatTensor):
-            Input adjacency matrix in PyTorch sparse COO format.
-        np_index (np.ndarray):
-            1D array of node indices to keep. Both rows and columns are restricted
-            to this index set.
+    Parameters
+    ----------
+    adj : torch.sparse.FloatTensor
+        Input adjacency matrix in PyTorch sparse COO format.
+    np_index : np.ndarray
+        1D array of node indices to keep. Both rows and columns are restricted
+        to this index set.
 
-    Returns:
-        torch.sparse.FloatTensor:
-            Sub-adjacency matrix of shape ``(len(np_index), len(np_index))`` in sparse COO format.
+    Returns
+    -------
+    torch.sparse.FloatTensor
+        Sub-adjacency matrix of shape ``(len(np_index), len(np_index))`` in sparse COO format.
     """
 
     adj = adj.coalesce()
@@ -242,16 +270,18 @@ def clr_normalize_each_cell(adata: anndata.AnnData, inplace: bool = True) -> ann
     Each row of ``adata.X`` (a cell) is normalized independently using
     the Seurat v3 CLR approach.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object with count matrix in ``.X``.
-        inplace (bool, optional):
-            If ``True`` (default), modify ``adata`` in place.
-            If ``False``, return a copy.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object with count matrix in ``.X``.
+    inplace : bool, optional
+        If ``True`` (default), modify ``adata`` in place.
+        If ``False``, return a copy.
 
-    Returns:
-        anndata.AnnData:
-            Normalized AnnData object (same object if ``inplace=True``).
+    Returns
+    -------
+    anndata.AnnData
+        Normalized AnnData object (same object if ``inplace=True``).
     """
 
     def seurat_clr(x):
@@ -273,22 +303,24 @@ def lsi(adata: anndata.AnnData, n_components: int = 20, use_highly_variable: boo
     """
     Perform Latent Semantic Indexing (LSI), following Seurat v3.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        n_components (int, optional):
-            Number of LSI components. Default is ``20``.
-        use_highly_variable (bool, optional):
-            If ``True``, use only highly variable features
-            (requires ``adata.var['highly_variable']``).
-            If ``None``, automatically detect. Default is ``None``.
-        **kwargs:
-            Additional keyword arguments passed to
-            ``sklearn.utils.extmath.randomized_svd``.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    n_components : int, optional
+        Number of LSI components. Default is ``20``.
+    use_highly_variable : bool, optional
+        If ``True``, use only highly variable features
+        (requires ``adata.var['highly_variable']``).
+        If ``None``, automatically detect. Default is ``None``.
+    **kwargs
+        Additional keyword arguments passed to
+        ``sklearn.utils.extmath.randomized_svd``.
 
-    Returns:
-        None:
-            Results are stored in ``adata.obsm['X_lsi']``.
+    Returns
+    -------
+    None
+        Results are stored in ``adata.obsm['X_lsi']``.
     """
 
     import sklearn
@@ -314,13 +346,15 @@ def tfidf(X) -> np.ndarray:
     """
     Perform TF-IDF normalization (Seurat v3).
 
-    Args:
-        X (array-like or sparse matrix):
-            Input count matrix of shape ``(n_cells, n_features)``.
+    Parameters
+    ----------
+    X : array-like or sparse matrix
+        Input count matrix of shape ``(n_cells, n_features)``.
 
-    Returns:
-        np.ndarray or scipy.sparse.spmatrix:
-            TF-IDF normalized matrix with same shape as input.
+    Returns
+    -------
+    np.ndarray or scipy.sparse.spmatrix
+        TF-IDF normalized matrix with same shape as input.
     """
 
     import scipy
@@ -338,21 +372,23 @@ def fix_seed(seed: int, deterministic_cudnn: bool = True, set_hash_seed: bool = 
     """
     Fix random seeds.
 
-    Args:
-        seed (int):
-            Random seed value.
-        deterministic_cudnn (bool, optional):
-            Whether to enable deterministic CUDA operations.
-            Default is ``True``.
-        set_hash_seed (bool, optional):
-            Whether to set the Python hash seed.
-            Default is ``True``.
-        mode (str, optional):
-            If set to ``'strict'``, enforce deterministic algorithms
-            in PyTorch (may slow down training). Default is empty string.
+    Parameters
+    ----------
+    seed : int
+        Random seed value.
+    deterministic_cudnn : bool, optional
+        Whether to enable deterministic CUDA operations.
+        Default is ``True``.
+    set_hash_seed : bool, optional
+        Whether to set the Python hash seed.
+        Default is ``True``.
+    mode : str, optional
+        If set to ``'strict'``, enforce deterministic algorithms
+        in PyTorch (may slow down training). Default is empty string.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
    
     random.seed(seed)
@@ -390,22 +426,24 @@ def filter_genes_keep_list(
     """
     Filter genes by minimum cell count, but always keep a specified gene list.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        gene_list (list of str):
-            Genes to keep regardless of minimum cell threshold.
-        min_cells (float, optional):
-            Minimum number of cells required per gene.
-            If ``None`` (default), use ``1%`` of total cells.
-        copy (bool, optional):
-            If ``True``, return a copy of the AnnData object.
-            If ``False``, modify in place.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    gene_list : list of str
+        Genes to keep regardless of minimum cell threshold.
+    min_cells : float, optional
+        Minimum number of cells required per gene.
+        If ``None`` (default), use ``1%`` of total cells.
+    copy : bool, optional
+        If ``True``, return a copy of the AnnData object.
+        If ``False``, modify in place.
 
-    Returns:
-        Optional[anndata.AnnData]:
-            Filtered AnnData object if ``copy=True``.
-            Otherwise modifies ``adata`` in place and returns ``None``.
+    Returns
+    -------
+    Optional[anndata.AnnData]
+        Filtered AnnData object if ``copy=True``.
+        Otherwise modifies ``adata`` in place and returns ``None``.
     """
    
     if min_cells is None:
@@ -426,31 +464,36 @@ def filter_genes_keep_list(
     else:
         adata._inplace_subset_var(final_mask)
 
+
+
+
 def preprocess_data(adata: anndata.AnnData, modality: str, n_lsi: int = 64, n_top_genes:int=1000, filter_adt: int = 0, gene_list: list = None) -> None:
     """
     Preprocess data according to modality (RNA, ATAC, protein, metabolite).
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        modality (str):
-            Data modality. Supported:
-            - ``'rna'``
-            - ``'atac'``
-            - ``'protein'``
-            - ``'metabolite'``
-        n_lsi (int, optional):
-            Number of LSI components (ATAC). Default is ``64``.
-        n_top_genes (int, optional):
-            Number of top highly variable genes (RNA/Metabolite). Default is ``1000``.
-        filter_adt (int, optional):
-            Minimum number of cells required per ADT feature. Default is ``0``.
-        gene_list (list of str, optional):
-            Gene list to retain (RNA only).
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    modality : str
+        Data modality. Supported:
+        - ``'rna'``
+        - ``'atac'``
+        - ``'protein'``
+        - ``'metabolite'``
+    n_lsi : int, optional
+        Number of LSI components (ATAC). Default is ``64``.
+    n_top_genes : int, optional
+        Number of top highly variable genes (RNA/Metabolite). Default is ``1000``.
+    filter_adt : int, optional
+        Minimum number of cells required per ADT feature. Default is ``0``.
+    gene_list : list of str, optional
+        Gene list to retain (RNA only).
 
-    Returns:
-        None:
-            Results are stored in ``adata.obsm`` (e.g., ``'X_norm'``, ``'X_clr'``).
+    Returns
+    -------
+    None
+        Results are stored in ``adata.obsm`` (e.g., ``'X_norm'``, ``'X_clr'``).
     """
     adata.var_names_make_unique()
 
@@ -468,12 +511,10 @@ def preprocess_data(adata: anndata.AnnData, modality: str, n_lsi: int = 64, n_to
         sc.pp.log1p(adata)
         sc.pp.scale(adata)
 
-        if gene_list is not None:
-            highly_var_mask = adata.var['highly_variable']
-            marker_mask = adata.var_names.isin(gene_list)
-            hvg = highly_var_mask | marker_mask
-        else:
-            hvg = adata.var['highly_variable']
+
+        hvg = adata.var.highly_variable
+        if gene_list: hvg |= adata.var_names.isin(gene_list)
+
         adata.var['highly_variable_all'] =hvg
         adata.obsm['X_norm'] = adata[:, hvg].X
 
@@ -501,15 +542,17 @@ def normalize_adj_scr(adj: torch.sparse.FloatTensor, add_loop=True) -> torch.spa
 
     Formula: :math:`D^{-1/2} A D^{-1/2}`
 
-    Args:
-        adj (torch.sparse.FloatTensor):
-            Input adjacency matrix (sparse COO format).
-        add_loop (bool, optional):
-            Whether to add self-loops. Default is ``True``.
+    Parameters
+    ----------
+    adj : torch.sparse.FloatTensor
+        Input adjacency matrix (sparse COO format).
+    add_loop : bool, optional
+        Whether to add self-loops. Default is ``True``.
 
-    Returns:
-        torch.sparse.FloatTensor:
-            Normalized adjacency matrix in sparse COO format.
+    Returns
+    -------
+    torch.sparse.FloatTensor
+        Normalized adjacency matrix in sparse COO format.
     """
 
     from torch_geometric.utils import add_self_loops, degree
@@ -545,13 +588,15 @@ def normalize_adj(adj_matrix: torch.Tensor) -> torch.sparse.FloatTensor:
 
     Formula: :math:`D^{-1/2} (A + I) D^{-1/2}`
 
-    Args:
-        adj_matrix (torch.Tensor):
-            Input adjacency matrix (dense or sparse tensor).
+    Parameters
+    ----------
+    adj_matrix : torch.Tensor
+        Input adjacency matrix (dense or sparse tensor).
 
-    Returns:
-        torch.sparse.FloatTensor:
-            Normalized adjacency matrix in sparse COO format.
+    Returns
+    -------
+    torch.sparse.FloatTensor
+        Normalized adjacency matrix in sparse COO format.
     """
     num_nodes = adj_matrix.size(0)
     adj_matrix = adj_matrix + torch.eye(num_nodes)
@@ -572,21 +617,23 @@ def mclust_R(adata: anndata.AnnData, num_cluster: int, modelNames: str = r'EEE',
     """
     Perform clustering using the R package ``mclust``.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        num_cluster (int):
-            Number of clusters.
-        modelNames (str, optional):
-            Model name for mclust. Default is ``'EEE'``.
-        used_obsm (str, optional):
-            Key in ``adata.obsm`` containing input embeddings. Default is ``'emb_pca'``.
-        random_seed (int, optional):
-            Random seed. Default is ``2024``.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    num_cluster : int
+        Number of clusters.
+    modelNames : str, optional
+        Model name for mclust. Default is ``'EEE'``.
+    used_obsm : str, optional
+        Key in ``adata.obsm`` containing input embeddings. Default is ``'emb_pca'``.
+    random_seed : int, optional
+        Random seed. Default is ``2024``.
 
-    Returns:
-        anndata.AnnData:
-            AnnData object with clustering results in ``adata.obs['mclust']``.
+    Returns
+    -------
+    anndata.AnnData
+        AnnData object with clustering results in ``adata.obs['mclust']``.
     """
     import rpy2.robjects as robjects
     from rpy2.robjects import numpy2ri
@@ -610,18 +657,20 @@ def pca(adata: anndata.AnnData, use_reps: str = None, n_comps: int = 20) -> np.n
     """
     Perform PCA dimensionality reduction.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        use_reps (str, optional):
-            Key in ``adata.obsm`` specifying input features.
-            If ``None`` (default), use ``adata.X``.
-        n_comps (int, optional):
-            Number of principal components. Default is ``20``.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    use_reps : str, optional
+        Key in ``adata.obsm`` specifying input features.
+        If ``None`` (default), use ``adata.X``.
+    n_comps : int, optional
+        Number of principal components. Default is ``20``.
 
-    Returns:
-        np.ndarray:
-            PCA-transformed features of shape ``(n_samples, n_comps)``.
+    Returns
+    -------
+    np.ndarray
+        PCA-transformed features of shape ``(n_samples, n_comps)``.
     """
     from sklearn.decomposition import PCA
     from scipy.sparse import csc_matrix, csr_matrix
@@ -642,13 +691,15 @@ def norm(array: np.ndarray) -> np.ndarray:
     """
     Apply L2 normalization row-wise.
 
-    Args:
-        array (np.ndarray):
-            Input 2D array.
+    Parameters
+    ----------
+    array : np.ndarray
+        Input 2D array.
 
-    Returns:
-        np.ndarray:
-            Row-normalized array with unit L2 norm.
+    Returns
+    -------
+    np.ndarray
+        Row-normalized array with unit L2 norm.
     """
     import torch
     tensor = torch.tensor(array, dtype=torch.float32)
@@ -659,36 +710,67 @@ def norm(array: np.ndarray) -> np.ndarray:
 
 def clustering(adata: anndata.AnnData, n_clusters: int = 7, key: str = r'emb', add_key: str = None, method: str = r'mclust', 
                start: float = 0.05, end: float = 3.0, use_pca: bool = False, n_comps: int = 20, use_X: bool = False) -> None:
+
     """
     Perform clustering using different algorithms (mclust, leiden, kmeans).
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        n_clusters (int, optional):
-            Number of clusters. Default is ``7``.
-        key (str, optional):
-            Key in ``adata.obsm`` specifying input embeddings. Default is ``'emb'``.
-        add_key (str, optional):
-            If provided, store results under this key in ``adata.obs``.
-        method (str, optional):
-            Clustering algorithm: ``'mclust'`` (default), ``'leiden'``, ``'kmeans'``.
-        start (float, optional):
-            Minimum resolution for Leiden search. Default is ``0.05``.
-        end (float, optional):
-            Maximum resolution for Leiden search. Default is ``3.0``.
-        use_pca (bool, optional):
-            Whether to apply PCA before clustering. Default is ``False``.
-        n_comps (int, optional):
-            Number of PCA components if ``use_pca=True``. Default is ``20``.
-        use_X (bool, optional):
-            Whether to use ``adata.X`` instead of ``adata.obsm`` features. Default is ``False``.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
 
-    Returns:
-        None:
-            Results are stored in ``adata.obs``.
+    n_clusters : int, optional
+        Number of clusters. Default is ``7``.
+
+    key : str, optional
+        Key in ``adata.obsm`` specifying input embeddings.
+        Default is ``'emb'``.
+
+    add_key : str, optional
+        If provided, store results under this key in ``adata.obs``.
+
+    method : str, optional
+        Clustering algorithm. One of:
+
+        - ``'mclust'`` (default)
+        - ``'leiden'``
+        - ``'kmeans'``
+
+    start : float, optional
+        Minimum resolution for Leiden search. Default is ``0.05``.
+
+    end : float, optional
+        Maximum resolution for Leiden search. Default is ``3.0``.
+
+    use_pca : bool, optional
+        Whether to apply PCA before clustering. Default is ``False``.
+
+    n_comps : int, optional
+        Number of PCA components if ``use_pca=True``. Default is ``20``.
+
+    use_X : bool, optional
+        Whether to use ``adata.X`` instead of ``adata.obsm`` features.
+        Default is ``False``.
+
+
+    Returns
+    -------
+    None
+        Results are stored in ``adata.obs``.
+
+
+    Notes
+    -----
+    This function can be used for clustering on the integrated embedding
+    generated by the DePass model (``.embedding``).
+
+    The clustering results saved in ``adata.obs`` can be directly used for:
+
+    - Visualization (e.g. ``DePass.utils_analysis.plot_spatial``)
+
+    - Differential gene expression analysis (e.g. ``DePass.utils_analysis.rank_genes_groups``)
     """
-
+    
     from sklearn.cluster import KMeans
 
     if use_X:
@@ -737,34 +819,37 @@ def binary_search_res(adata: anndata.AnnData, n_clusters: int, method: str = 'le
     """
     Binary search to find resolution parameter yielding target number of clusters.
 
-    Args:
-        adata (anndata.AnnData):
-            Input AnnData object.
-        n_clusters (int):
-            Target number of clusters.
-        method (str, optional):
-            Clustering method: ``'leiden'`` or ``'louvain'``.
-            Default is ``'leiden'``.
-        use_rep (str, optional):
-            Key in ``adata.obsm`` for input embeddings. Default is ``'emb'``.
-        res_min (float, optional):
-            Minimum resolution. Default is ``0.01``.
-        res_max (float, optional):
-            Maximum resolution. Default is ``3.0``.
-        max_iter (int, optional):
-            Maximum number of iterations. Default is ``100``.
-        tol (float, optional):
-            Allowed deviation from target cluster count. Default is ``1e-2``.
-        random_state (int, optional):
-            Random seed. Default is ``2024``.
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input AnnData object.
+    n_clusters : int
+        Target number of clusters.
+    method : str, optional
+        Clustering method: ``'leiden'`` or ``'louvain'``.
+        Default is ``'leiden'``.
+    use_rep : str, optional
+        Key in ``adata.obsm`` for input embeddings. Default is ``'emb'``.
+    res_min : float, optional
+        Minimum resolution. Default is ``0.01``.
+    res_max : float, optional
+        Maximum resolution. Default is ``3.0``.
+    max_iter : int, optional
+        Maximum number of iterations. Default is ``100``.
+    tol : float, optional
+        Allowed deviation from target cluster count. Default is ``1e-2``.
+    random_state : int, optional
+        Random seed. Default is ``2024``.
 
-    Returns:
-        float:
-            Optimal resolution parameter.
+    Returns
+    -------
+    float
+        Optimal resolution parameter.
 
-    Raises:
-        ValueError:
-            If the target cluster count cannot be reached.
+    Raises
+    ------
+    ValueError
+        If the target cluster count cannot be reached.
     """
 
 
@@ -802,25 +887,26 @@ def super_eval(y_pred, y_true) -> dict:
     """
     Evaluate clustering performance using supervised metrics.
 
-    Args:
-        y_pred (array-like):
-            Predicted cluster labels (numeric, string, or categorical).
-        y_true (array-like):
-            True cluster labels (numeric, string, or categorical).
+    Parameters
+    ----------
+    y_pred : array-like
+        Predicted cluster labels (numeric, string, or categorical).
+    y_true : array-like
+        True cluster labels (numeric, string, or categorical).
 
-    Returns:
-        dict:
-            Dictionary of metrics:
-            - ``AMI``: Adjusted Mutual Information
-            - ``NMI``: Normalized Mutual Information
-            - ``ARI``: Adjusted Rand Index
-            - ``Homogeneity``: Homogeneity score
-            - ``V-measure``: V-measure (homogeneity/completeness harmonic mean)
-            - ``Mutual Information``: Raw mutual information
+    Returns
+    -------
+    dict
+        Dictionary of metrics:
+        - ``AMI``: Adjusted Mutual Information
+        - ``NMI``: Normalized Mutual Information
+        - ``ARI``: Adjusted Rand Index
+        - ``Homogeneity``: Homogeneity score
 
-    Raises:
-        ValueError:
-            If lengths mismatch, or if labels contain NaN/inf values.
+    Raises
+    ------
+    ValueError
+        If lengths mismatch, or if labels contain NaN/inf values.
     """
 
     from sklearn import metrics
@@ -856,9 +942,7 @@ def super_eval(y_pred, y_true) -> dict:
         'AMI': metrics.adjusted_mutual_info_score(y_true, y_pred),
         'NMI': metrics.normalized_mutual_info_score(y_true, y_pred),
         'ARI': metrics.adjusted_rand_score(y_true, y_pred),
-        'Homogeneity': metrics.homogeneity_score(y_true, y_pred),
-        'V-measure': metrics.v_measure_score(y_true, y_pred),
-        'Mutual Information': metrics.mutual_info_score(y_true, y_pred),
+        'Homogeneity': metrics.homogeneity_score(y_true, y_pred)
     }
 
     return results
@@ -868,26 +952,29 @@ def unsuper_eval(X, y) -> dict:
     """
     Evaluate clustering performance using unsupervised metrics.
 
-    Args:
-        X (array-like):
-            Feature matrix of shape ``(n_samples, n_features)``.
-        y (array-like):
-            Predicted cluster labels of shape ``(n_samples,)``.
+    Parameters
+    ----------
+    X : array-like
+        Feature matrix of shape ``(n_samples, n_features)``.
+    y : array-like
+        Predicted cluster labels of shape ``(n_samples,)``.
 
-    Returns:
-        dict:
-            Dictionary of metrics:
-            - ``ASW``: Adjusted Silhouette Width (rescaled to [0,1])
-            - ``DBI``: Davies–Bouldin Index (lower is better)
-            - ``CHI``: Calinski–Harabasz Index (higher is better)
+    Returns
+    -------
+    dict
+        Dictionary of metrics:
+        - ``ASW``: Adjusted Silhouette Width (rescaled to [0,1])
+        - ``DBI``: Davies-Bouldin Index (lower is better)
+          
 
-    Raises:
-        AssertionError:
-            If ``X`` or ``y`` contains NaN values.
+    Raises
+    ------
+    AssertionError
+        If ``X`` or ``y`` contains NaN values.
     """
 
 
-    from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+    from sklearn.metrics import silhouette_score, davies_bouldin_score
 
     if not isinstance(X, np.ndarray):
         X = np.array(X)
@@ -900,7 +987,6 @@ def unsuper_eval(X, y) -> dict:
     results = {
         'ASW': 0.5 * (silhouette_score(X, y) + 1),
         'DBI': davies_bouldin_score(X, y),
-        'CHI': calinski_harabasz_score(X, y),
     }
 
     return results

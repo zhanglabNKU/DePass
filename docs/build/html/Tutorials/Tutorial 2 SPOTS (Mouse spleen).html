@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 2: SPOTS (Mouse Spleen dataset) &mdash; DePass 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/readthedocs-custom.css" />
 
@@ -24,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial 3: Visium-MALDI (PD Mouse A)" href="Tutorial%203%20Visium-MALDI%20%28PD%20mouse%20A%29.html" />
+    <link rel="next" title="Tutorial 3: Visium-MALDI (Mouse brain A)" href="Tutorial%203%20Visium-MALDI%20%28Mouse%20brain%20A%29.html" />
     <link rel="prev" title="Tutorial 1: Spatial CITE-seq (Human Tonsil)" href="Tutorial%201%20Spatial%20CITE-seq%20%28Human%20tonsil%29.html" /> 
 </head>
 
@@ -57,19 +57,16 @@
 <li class="toctree-l3"><a class="reference internal" href="#Loading-and-preprocessing">Loading and preprocessing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Training-the-model">Training the model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Detect-spatial-domain">Detect spatial domain</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Data-enhancement-analysis:-marker-LogFC-and-expression-pattern">Data enhancement analysis: marker LogFC and expression pattern</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#PCC-comparison">PCC comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Data-enhancement-analysis:-marker-LogFC-and-expression-pattern">Data enhancement analysis: marker LogFC and expression pattern</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28PD%20mouse%20A%29.html">Tutorial 3: Visium-MALDI (PD Mouse A)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28PD%20mouse%20B%29.html">Tutorial 4: Visium-MALDI (PD Mouse B)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28PD%20mouse%20C%29.html">Tutorial 5: Visium-MALDI (PD Mouse C)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20brain%29.html">Tutorial 6: MISAR-seq (Mouse brain)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28Mouse%20brain%20A%29.html">Tutorial 3: Visium-MALDI (Mouse brain A)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28Mouse%20brain%20B%29.html">Tutorial 4: Visium-MALDI (Mouse brain B)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28Mouse%20brain%20C%29.html">Tutorial 5: Visium-MALDI (Mouse brain C)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20embryo%20brain%29.html">Tutorial 6: MISAR-seq (Mouse embryo brain)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%207%20Spatial%20Stereo-CITE-seq%20%28CRC%29.html">Tutorial 7: Spatial Stereo-CITE-seq (CRC)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%208%20Spatial-Mux-seq%20%28Mouse%20embryo%29.html">Tutorial 8: Spatial-Mux-seq (Mouse embryo)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%20KO4%29.html">Tutorial 9: CITE-seq (GSE163120 KO4)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%29.html">Tutorial 9: CITE-seq (GSE163120)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2010%2010x%20Multiome%20%28PBMC3k%29.html">Tutorial 10: 10x Multiome (PBMC 3k)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2011%2010x%20Multiome%20%28PBMC10k%29.html">Tutorial 11: 10x Multiome (PBMC 10k)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2012%20DOGMA-seq.html">Tutorial 12: DOGMA-seq (PBMC)</a></li>
@@ -109,34 +106,26 @@
 <ol class="arabic simple">
 <li><p>Spatial domain identification in mouse spleen tissue using DePass.</p></li>
 <li><p>Validation of data enhancement through comparative analysis of biomarker log2 fold-changes (LogFC) and spatial expression patterns.</p></li>
-<li><p>In addition, we calculated the Pearson Correlation Coefficient (PCC) between genes and proteins associated with the biomarkers, confirming that the enhanced data retained biological consistency.</p></li>
 </ol>
 <section id="Preparation">
 <h2>Preparation<a class="headerlink" href="#Preparation" title="Permalink to this heading"></a></h2>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">scanpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="c1"># sys.path.append(&#39;/home/jyx/DePass/&#39;)</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="n">fix_seed</span><span class="p">(</span><span class="mi">2024</span><span class="p">)</span>
-
 <span class="c1"># Environment configuration</span>
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda:0&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
 
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;R_HOME&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;/home/jyx/anaconda3/envs/DePass/lib/R&#39;</span>
-
 <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;../data/dataset_MouseSpleen&#39;</span>
 <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">else</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The directory &#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; already exists.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -181,13 +170,6 @@ The directory &#39;../data/dataset_MouseSpleen&#39; already exists.
 </section>
 <section id="Training-the-model">
 <h2>Training the model<a class="headerlink" href="#Training-the-model" title="Permalink to this heading"></a></h2>
-<p>The DePass model is designed for multi-omics data integration at both spatial and single-cell data. After training, the output file includes the following key results:</p>
-<ol class="arabic simple">
-<li><p><strong>``embedding``</strong>: Integrated embedding representation, which integrates multi-omics expression features with spatial coordinate information (for spatial data). This representation is used directly for downstream tasks (e.g., spatial domain segmentation) or visualization (e.g., UMAP).</p></li>
-<li><p><strong>``x1_enh``</strong>: Enhanced feature matrix for the first omics modality.</p></li>
-<li><p><strong>``x2_enh``</strong>: Enhanced feature matrix for the second omics modality.</p></li>
-<li><p><strong>``alpha``</strong>: Cross-modality attention weight matrix, dynamically learned through a attention mechanism. It reflects the relative importance of each modality in clustering units (e.g., cells/spots/bins).</p></li>
-</ol>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -289,10 +271,10 @@ fitting ...
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.analyze_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spatial</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spatial</span>
 
 <span class="n">plot_spatial</span><span class="p">(</span>
     <span class="n">adata</span><span class="p">,</span>
@@ -310,13 +292,12 @@ fitting ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_12_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_12_0.png" />
+<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_11_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_11_0.png" />
 </div>
 </div>
 </section>
 <section id="Data-enhancement-analysis:-marker-LogFC-and-expression-pattern">
 <h2>Data enhancement analysis: marker LogFC and expression pattern<a class="headerlink" href="#Data-enhancement-analysis:-marker-LogFC-and-expression-pattern" title="Permalink to this heading"></a></h2>
-<p>Perform differential expression analysis using <strong>scanpy</strong>. Set the grouping variable to ‘DePass’. Rank genes with the ‘wilcoxon’ method to calculate log-fold change (logFC) values.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
@@ -332,11 +313,12 @@ fitting ...
 </pre></div>
 </div>
 </div>
+<p>To calculate logFC values, perform differential expression analysis with scanpy.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.analyze_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">rank_genes_groups</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">rank_genes_groups</span>
 <span class="n">rank_genes_groups</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata1_R</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;rank_x1_R&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">n_genes</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">rank_genes_groups</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata1_E</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;rank_x1_E&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">n_genes</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">rank_genes_groups</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata2_R</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s1">&#39;rank_x2_R&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">n_genes</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -348,7 +330,35 @@ fitting ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
+<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_15_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_15_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_marker_comparison_with_logFC</span><span class="p">,</span> <span class="n">truncate_expression_smartclip</span>
+
+<span class="n">adata_R_clip</span><span class="p">,</span> <span class="n">adata_E_clip</span> <span class="o">=</span> <span class="n">truncate_expression_smartclip</span><span class="p">(</span><span class="n">adata1_R</span><span class="p">,</span> <span class="s1">&#39;Cd3e&#39;</span><span class="p">),</span> <span class="n">truncate_expression_smartclip</span><span class="p">(</span><span class="n">adata1_E</span><span class="p">,</span> <span class="s1">&#39;Cd3e&#39;</span><span class="p">)</span>
+<span class="n">plot_marker_comparison_with_logFC</span><span class="p">(</span><span class="n">adata_R_clip</span><span class="p">,</span> <span class="n">adata_E_clip</span><span class="p">,</span> <span class="n">target_gene</span><span class="o">=</span><span class="s1">&#39;Cd3e&#39;</span><span class="p">,</span> <span class="n">target_group</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="s1">&#39;Cd3e&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">adata_R_clip</span><span class="p">,</span> <span class="n">adata_E_clip</span> <span class="o">=</span> <span class="n">truncate_expression_smartclip</span><span class="p">(</span><span class="n">adata2_R</span><span class="p">,</span> <span class="s1">&#39;CD3&#39;</span><span class="p">),</span> <span class="n">truncate_expression_smartclip</span><span class="p">(</span><span class="n">adata2_E</span><span class="p">,</span> <span class="s1">&#39;CD3&#39;</span><span class="p">)</span>
+<span class="n">plot_marker_comparison_with_logFC</span><span class="p">(</span><span class="n">adata_R_clip</span><span class="p">,</span> <span class="n">adata_E_clip</span><span class="p">,</span> <span class="n">target_gene</span><span class="o">=</span><span class="s1">&#39;CD3&#39;</span><span class="p">,</span> <span class="n">target_group</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="s1">&#39;CD3&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
 <img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_16_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_16_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_16_1.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_16_1.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -362,92 +372,6 @@ fitting ...
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.analyze_utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-<span class="n">plot_marker_comparison_with_logFC</span><span class="p">(</span><span class="n">adata1_R</span><span class="p">,</span> <span class="n">adata1_E</span><span class="p">,</span> <span class="n">target_gene</span><span class="o">=</span><span class="s1">&#39;Cd3e&#39;</span><span class="p">,</span> <span class="n">target_group</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="s1">&#39;Cd3e&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plot_marker_comparison_with_logFC</span><span class="p">(</span><span class="n">adata2_R</span><span class="p">,</span> <span class="n">adata2_E</span><span class="p">,</span> <span class="n">target_gene</span><span class="o">=</span><span class="s1">&#39;CD3&#39;</span><span class="p">,</span> <span class="n">target_group</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="s1">&#39;CD3&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_18_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_18_0.png" />
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_18_1.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_18_1.png" />
-</div>
-</div>
-<section id="PCC-comparison">
-<h3>PCC comparison<a class="headerlink" href="#PCC-comparison" title="Permalink to this heading"></a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
-
-<span class="n">gene_adt_mapping</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CD3&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cd3g&quot;</span><span class="p">,</span> <span class="s2">&quot;Cd3d&quot;</span><span class="p">,</span> <span class="s2">&quot;Cd3e&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;CD4&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cd4&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;CD8&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cd8a&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;CD19&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cd19&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;IgD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Ighd&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;CD163&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cd163&quot;</span><span class="p">]</span>
-<span class="p">}</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">DePass.analyze_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_correlation</span>
-<span class="n">df_raw_pcc</span> <span class="o">=</span> <span class="n">calculate_correlation</span><span class="p">(</span><span class="n">adata1_R</span><span class="p">,</span> <span class="n">adata2_R</span><span class="p">,</span> <span class="n">gene_adt_mapping</span><span class="p">)</span>
-<span class="n">df_raw_pcc</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Raw&#39;</span>
-<span class="n">df_enh_pcc</span> <span class="o">=</span> <span class="n">calculate_correlation</span><span class="p">(</span><span class="n">adata1_E</span><span class="p">,</span> <span class="n">adata2_E</span><span class="p">,</span> <span class="n">gene_adt_mapping</span><span class="p">)</span>
-<span class="n">df_enh_pcc</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Enh&#39;</span>
-<span class="n">df_combined</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_raw_pcc</span><span class="p">,</span> <span class="n">df_enh_pcc</span><span class="p">])</span>
-<span class="n">df_combined</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/PCC.csv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
-<span class="n">custom_palette</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#003A75&quot;</span><span class="p">,</span><span class="s2">&quot;#FD5F5E&quot;</span><span class="p">,</span> <span class="s2">&quot;#345D82&quot;</span><span class="p">]</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">&quot;whitegrid&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Gene_ADT&quot;</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Correlation&quot;</span><span class="p">,</span>
-    <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
-    <span class="n">data</span><span class="o">=</span><span class="n">df_combined</span><span class="p">,</span>
-    <span class="n">palette</span><span class="o">=</span><span class="n">custom_palette</span>
-<span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Gene-ADT&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;PCC&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="s2">&quot;/PCC Comparison (Raw vs Augmented).png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_21_0.png" src="../_images/Tutorials_Tutorial_2_SPOTS_%28Mouse_spleen%29_21_0.png" />
-</div>
-</div>
-</section>
 </section>
 </section>
 
@@ -456,13 +380,13 @@ fitting ...
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Tutorial%201%20Spatial%20CITE-seq%20%28Human%20tonsil%29.html" class="btn btn-neutral float-left" title="Tutorial 1: Spatial CITE-seq (Human Tonsil)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Tutorial%203%20Visium-MALDI%20%28PD%20mouse%20A%29.html" class="btn btn-neutral float-right" title="Tutorial 3: Visium-MALDI (PD Mouse A)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Tutorial%203%20Visium-MALDI%20%28Mouse%20brain%20A%29.html" class="btn btn-neutral float-right" title="Tutorial 3: Visium-MALDI (Mouse brain A)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Zhang lab.</p>
+    <p>&#169; Copyright zhanglabNKU.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

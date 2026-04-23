@@ -23,15 +23,13 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
     "import scanpy as sc\n",
     "import torch\n",
-    "import random\n",
     "import pandas as pd\n",
-    "import numpy as np\n",
     "import os\n",
     "import warnings\n",
     "warnings.filterwarnings(\"ignore\")\n",
@@ -187,13 +185,13 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "{'AMI': 0.5262018356211751, 'NMI': 0.5304512934724694, 'ARI': 0.31539009360092624, 'Homogeneity': 0.6327088207802715, 'V-measure': 0.5304512934724694, 'Mutual Information': 1.3936840065103853}\n"
+      "{'AMI': 0.5262018356211751, 'NMI': 0.5304512934724694, 'ARI': 0.31539009360092624, 'Homogeneity': 0.6327088207802715}\n"
      ]
     }
    ],
    "source": [
     "from DePass.utils import super_eval\n",
-    "import pandas as pd\n",
+    "\n",
     "re = super_eval(adata.obs['DePass'],adata.obs['Y'])\n",
     "pd.DataFrame(list(re.items()), columns=['metric', 'Value']).to_csv(path + '/re.csv', sep='\\t', index=True, float_format='%.6f')\n",
     "print(re)"

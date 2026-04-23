@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 import time
-from .Net import DePassAE, DePassAE_va
+from .net import DePassAE, DePassAE_va
 from sklearn.neighbors import kneighbors_graph
 from .utils import *
 from torch_geometric.loader import ClusterData, ClusterLoader
@@ -34,54 +34,130 @@ class DePass:
         Initialize the DePass model for multi-omics integration.
 
         This class implements DePass, a deep learning framework for integrating
-        spatial or single-cell multi-modal data (e.g., RNA, protein, spatial coordinates). 
-      
+        spatial or single-cell multi-modal data (e.g. RNA, protein, spatial coordinates).
+        
+        After calling the ``train()`` method, all outputs will be automatically 
+        stored as attributes of the model object and ready for downstream analysis.
 
         Parameters
         ----------
         data : dict
-            Dictionary mapping modality names (e.g., ``"RNA"``, ``"Protein"``) 
-            to their corresponding AnnData objects. Each AnnData must contain 
-            modality-specific features in ``.obsm['input_feat']``.
-        data_type : str, default='spatial'
-            Type of dataset. Must be either:
-            - ``'spatial'`` : for spatial transcriptomics data (requires ``adata.obsm['spatial']``).
-            - ``'single_cell'`` : for scRNA-seq or other single-cell modalities.
-        device : torch.device, default=torch.device('cpu')
+            Dictionary mapping modality names (e.g. "RNA", "Protein")
+            to their corresponding AnnData objects. Each AnnData must contain
+            modality-specific features in .obsm['input_feat'].
+
+        data_type : {"spatial", "single_cell"}, optional
+            Type of dataset:
+
+            - "spatial" :
+            Spatial transcriptomics data (requires adata.obsm['spatial'])
+
+            - "single_cell" :
+            Single-cell modalities (e.g. scRNA-seq)
+
+            Default is "spatial".
+
+        device : torch.device, optional
             Torch device used for training (CPU or CUDA GPU).
-        learning_rate : float, default=2e-4
-            Learning rate for the optimizer.
-        epochs : int, default=200
-            Total number of training epochs.
-        batch_training : bool, default=False
+            Default is torch.device('cpu').
+
+        learning_rate : float, optional
+            Learning rate for the optimizer. Default is 2e-4.
+
+        epochs : int, optional
+            Total number of training epochs. Default is 200.
+
+        batch_training : bool, optional
             Whether to use batch-based training instead of full-graph training.
-        sub_graph_size : int, default=1024
-            Subgraph size when ``batch_training=True``.
-        updata_step : int, default=25
-            Number of update steps.
-        mlpLayer1 : list of int, default=[256, 64]
-            Hidden layer dimensions of the first MLP encoder (for omics 1).
-        mlpLayer2 : list of int, default=[256, 64]
-            Hidden layer dimensions of the second MLP encoder (for omics 2).
-        mlpLayer3 : list of int, default=[256, 64]
-            Hidden layer dimensions of the third MLP encoder (for omics 3, if provided).
-        dim : int, default=64
-            Dimension of the shared embedding space.
-        K_spatial : int, default=5
-            Number of neighbors in the spatial KNN graph (only for ``data_type='spatial'``).
-        K_feature : int, default=20
+            Default is False.
+
+        sub_graph_size : int, optional
+            Subgraph size when batch_training=True. Default is 1024.
+
+        updata_step : int, optional
+            Number of update steps. Default is 25.
+
+        mlpLayer1 : list of int, optional
+            Hidden layer dimensions of the first MLP encoder (omics 1).
+            Default is [256, 64].
+
+        mlpLayer2 : list of int, optional
+            Hidden layer dimensions of the second MLP encoder (omics 2).
+            Default is [256, 64].
+
+        mlpLayer3 : list of int, optional
+            Hidden layer dimensions of the third MLP encoder (omics 3, if provided).
+            Default is [256, 64].
+
+        dim : int, optional
+            Dimension of the shared embedding space. Default is 64.
+
+        K_spatial : int, optional
+            Number of neighbors in the spatial KNN graph
+            (only used when data_type="spatial"). Default is 5.
+
+        K_feature : int, optional
             Number of neighbors in the feature-based KNN graph.
+            Default is 20.
 
         Raises
         ------
         ValueError
-            If ``data_type`` is not in ``['spatial', 'single_cell']``.
+            If data_type is not in {"spatial", "single_cell"}.
+
         ValueError
-            If ``'spatial'`` key is missing in AnnData objects when ``data_type='spatial'``.
+            If "spatial" key is missing in AnnData objects when
+            data_type="spatial".
+
+
+
+        Returns
+        -------
+        The trained model stores key results as class attributes:
+
+            ``.embedding`` :
+                Joint integrated embedding. Primary output for downstream analysis.
+
+            ``.x1_enh``, ``.x2_enh``, ..., ``.xn_enh`` :
+                DePass-enhanced omics data for each modality.
 
         Notes
         -----
-        - Prints configuration summary upon initialization.
+        Input data is expected to be the preprocessed output from
+        ``DePass.utils.preprocess_data``.
+
+        **Example input format (dict):**
+
+        .. code-block:: python
+
+            {
+                "rna": adata_omics1,
+                "protein": adata_omics2
+            }
+
+            
+        After training, the model stores key results as attributes, which can be directly used for downstream analysis:
+
+        - ``.embedding`` :
+            Joint integrated embedding.
+            Primary output for downstream analysis.
+
+            - Clustering (e.g. ``DePass.utils.clustering``)
+            - Visualization (e.g. ``DePass.utils_analysis.plot_spatial``)
+            - Differential gene expression analysis (e.g. ``DePass.utils_analysis.rank_genes_groups``)
+
+        - ``.x1_enh``, ``.x2_enh``, ..., ``.xn_enh`` :
+            DePass-enhanced omics data for each modality.
+
+            - Visualization (e.g. ``DePass.utils_analysis.plot_marker_comparison``)
+            - Cell-cell communication analysis
+            - Trajectory inference
+            - Cross-omics prediction
+            - Spatial niche inference
+
+            The GitHub repository includes practical examples for getting started.
+
+
         """
 
         self.data = data.copy()
@@ -116,13 +192,18 @@ class DePass:
         print('[Config]')
         print('Modalities:',self.n_views,'| Data:',self.data_type,'| Device:',device_name,'\n')   
 
+
+
     def train(self):
         """
-        Main training entry point.
+        Main training entry point for DePass.
 
-        Selects appropriate training strategy based on the number
-        of modalities (2 or >=3) and dataset size.
+        This method automatically selects the training strategy based on
+        the number of modalities (2 or ≥3) and dataset size.
+
         """
+
+
         if self.n_views == 2:
             modality = list(self.data.keys())
             self.mlpLayer1=[128,64] if modality[0] in ['protein'] else [256,64]
@@ -136,8 +217,9 @@ class DePass:
             self.dim_input1 = self.features_omics1.shape[1]
             self.dim_input2 = self.features_omics2.shape[1]
            
-            if self.features_omics1.shape[0] > 4e4:
+            if self.features_omics1.shape[0] > 8e4:
                 self._train2_sparse() # Use sparse format and batch training
+                self.sub_graph_size = 4e4
             else:
                 self._train2() 
 
@@ -163,6 +245,7 @@ class DePass:
     
             self._train_va()
      
+
 
     def _train2(self):
         """
@@ -208,12 +291,12 @@ class DePass:
         if self.batch_training:
             print('')
             undirected_geo = to_undirected_geo_data(adj_shared,node_index=torch.arange(adj_shared.shape[0]))
-            cluster_data = ClusterData(undirected_geo, num_parts=int(np.ceil(undirected_geo.num_nodes / self.sub_graph_size)) * 4,
+            cluster_data = ClusterData(undirected_geo, num_parts=int(np.ceil(undirected_geo.num_nodes / self.sub_graph_size)) * 2,
                                        recursive=False)
             train_loader = ClusterLoader(cluster_data, batch_size=2, shuffle=True)
         
-        print('')
-        print('[Training]')
+
+        print('\n[Training]')
         print("Model training starts...")  
         self.model.train()
         for epoch in tqdm(range(0, self.epochs)):
@@ -283,6 +366,8 @@ class DePass:
         self.x1_enh = x1_z_enh.detach().cpu().numpy()
         self.x2_enh = x2_z_enh.detach().cpu().numpy()
 
+
+
     def _train2_sparse(self):
         """
         Sparse batch training for two-modality data using DePassAE.
@@ -323,12 +408,12 @@ class DePass:
 
         # batch_training
         undirected_geo = to_undirected_geo_data(adj_shared,node_index=torch.arange(adj_shared.shape[0]))
-        cluster_data = ClusterData(undirected_geo, num_parts=int(np.ceil(undirected_geo.num_nodes / self.sub_graph_size)) * 4,
+        cluster_data = ClusterData(undirected_geo, num_parts=int(np.ceil(undirected_geo.num_nodes / self.sub_graph_size)) * 2,
                                        recursive=False)
         train_loader = ClusterLoader(cluster_data, batch_size=2, shuffle=True)
 
-        print('')
-        print('[Training]')
+
+        print('\n[Training]')
         print("Model training starts...")
         self.model.train()
         for epoch in tqdm(range(0, self.epochs)):
@@ -392,6 +477,8 @@ class DePass:
         self.x1_enh  = x1_z_enh.detach().cpu().numpy()
         self.x2_enh  = x2_z_enh.detach().cpu().numpy()
     
+
+
     def _train_va(self):
         """
         Training for three or more modalities using variational autoencoder (DePassAE_va).
@@ -438,8 +525,8 @@ class DePass:
             adj_norm_list.append(adj_norm)
         adj_shared_norm = normalize_adj(adj_shared).to(self.device)
 
-        print('')
-        print('[Training]')
+       
+        print('\n[Training]')
         print("Model training starts...")
         self.model.train()
         for epoch in tqdm(range(0, self.epochs)):
@@ -494,8 +581,9 @@ class DePass:
     
 
 
-import torch
-from scipy.sparse import coo_matrix
+
+
+
 
 def _get_augment(data=None,FeatNeigh=None, SpatialNeigh=None, w = 0.01, w_fea=0.25,w_spa=0.25):
         """
@@ -525,6 +613,7 @@ def _get_augment(data=None,FeatNeigh=None, SpatialNeigh=None, w = 0.01, w_fea=0.
             enhanced_data = data + w_fea * FeatNeigh @ data + w_spa * SpatialNeigh @ data      
         return enhanced_data
 
+
 def _augment_data_lc(data, FeatNeigh=None, SpatialNeigh=None, w=0.01, w_fea=0.25, w_spa=0.25):
     FeatNeigh = FeatNeigh.to(data.device)
     if SpatialNeigh is None:
@@ -549,18 +638,5 @@ def _augment_data_lc(data, FeatNeigh=None, SpatialNeigh=None, w=0.01, w_fea=0.25
     return enhanced_data
 
 def _norm_convert(emb):
-    """
-    Normalize embeddings row-wise (L2 norm) and convert to numpy array.
-
-    Parameters
-    ----------
-    emb : torch.Tensor
-        Input matrix.
-
-    Returns
-    -------
-    np.ndarray
-        L2-normalized data.
-    """
     emb = F.normalize(emb, p=2, eps=1e-12, dim=1)
     return emb.detach().cpu().numpy()

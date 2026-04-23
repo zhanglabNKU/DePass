@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 8: Spatial-Mux-seq (Mouse embryo) &mdash; DePass 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
       <link rel="stylesheet" type="text/css" href="../_static/readthedocs-custom.css" />
 
@@ -24,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial 9: CITE-seq (GSE163120 KO4)" href="Tutorial%209%20CITE-seq%20%28GSE163120%20KO4%29.html" />
+    <link rel="next" title="Tutorial 9: CITE-seq (GSE163120)" href="Tutorial%209%20CITE-seq%20%28GSE163120%29.html" />
     <link rel="prev" title="Tutorial 7: Spatial Stereo-CITE-seq (CRC)" href="Tutorial%207%20Spatial%20Stereo-CITE-seq%20%28CRC%29.html" /> 
 </head>
 
@@ -53,10 +53,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%201%20Spatial%20CITE-seq%20%28Human%20tonsil%29.html">Tutorial 1: Spatial CITE-seq (Human Tonsil)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%202%20SPOTS%20%28Mouse%20spleen%29.html">Tutorial 2: SPOTS (Mouse Spleen dataset)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28PD%20mouse%20A%29.html">Tutorial 3: Visium-MALDI (PD Mouse A)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28PD%20mouse%20B%29.html">Tutorial 4: Visium-MALDI (PD Mouse B)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28PD%20mouse%20C%29.html">Tutorial 5: Visium-MALDI (PD Mouse C)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20brain%29.html">Tutorial 6: MISAR-seq (Mouse brain)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%203%20Visium-MALDI%20%28Mouse%20brain%20A%29.html">Tutorial 3: Visium-MALDI (Mouse brain A)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%204%20Visium-MALDI%20%28Mouse%20brain%20B%29.html">Tutorial 4: Visium-MALDI (Mouse brain B)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%205%20Visium-MALDI%20%28Mouse%20brain%20C%29.html">Tutorial 5: Visium-MALDI (Mouse brain C)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%206%20MISAR-seq%20%28Mouse%20embryo%20brain%29.html">Tutorial 6: MISAR-seq (Mouse embryo brain)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%207%20Spatial%20Stereo-CITE-seq%20%28CRC%29.html">Tutorial 7: Spatial Stereo-CITE-seq (CRC)</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 8: Spatial-Mux-seq (Mouse embryo)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Preparation">Preparation</a></li>
@@ -65,7 +65,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#Detect-spatial-domain">Detect spatial domain</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%20KO4%29.html">Tutorial 9: CITE-seq (GSE163120 KO4)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial%209%20CITE-seq%20%28GSE163120%29.html">Tutorial 9: CITE-seq (GSE163120)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2010%2010x%20Multiome%20%28PBMC3k%29.html">Tutorial 10: 10x Multiome (PBMC 3k)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2011%2010x%20Multiome%20%28PBMC10k%29.html">Tutorial 11: 10x Multiome (PBMC 10k)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorial%2012%20DOGMA-seq.html">Tutorial 12: DOGMA-seq (PBMC)</a></li>
@@ -111,9 +111,7 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">scanpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
@@ -169,7 +167,7 @@ The directory &#39;../data/dataset_Spatial_Mux_seq&#39; already exists.
 <span class="n">adata_omics4</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">read_h5ad</span><span class="p">(</span><span class="s1">&#39;../data/dataset_Spatial_Mux_seq/E13_50_3_H3K27me3.h5ad&#39;</span><span class="p">)</span>
 
 <span class="n">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata_omics1</span><span class="p">,</span><span class="n">modality</span><span class="o">=</span><span class="s1">&#39;rna&#39;</span><span class="p">,</span><span class="n">n_top_genes</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">gene_list</span><span class="o">=</span><span class="n">key_gene_list</span><span class="p">)</span>
-<span class="c1"># For this dataset, the ATAC, H3K4me3 and H3K27me3 data are all processed as gene scores, so the RNA preprocessing method is used.</span>
+<span class="c1"># ATAC, H3K4me3 and H3K27me3 data are processed as gene scores, so the RNA preprocessing method is used.</span>
 <span class="n">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata_omics2</span><span class="p">,</span><span class="n">modality</span><span class="o">=</span><span class="s1">&#39;rna&#39;</span><span class="p">,</span><span class="n">n_top_genes</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">gene_list</span><span class="o">=</span><span class="n">key_gene_list</span><span class="p">)</span>
 <span class="n">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata_omics3</span><span class="p">,</span><span class="n">modality</span><span class="o">=</span><span class="s1">&#39;rna&#39;</span><span class="p">,</span><span class="n">n_top_genes</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">gene_list</span><span class="o">=</span><span class="n">key_gene_list</span><span class="p">)</span>
 <span class="n">preprocess_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata_omics4</span><span class="p">,</span><span class="n">modality</span><span class="o">=</span><span class="s1">&#39;rna&#39;</span><span class="p">,</span><span class="n">n_top_genes</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">gene_list</span><span class="o">=</span><span class="n">key_gene_list</span><span class="p">)</span>
@@ -252,7 +250,7 @@ Model training finished!
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="n">clustering</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata</span><span class="p">,</span><span class="n">n_clusters</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span><span class="n">add_key</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;mclust&#39;</span><span class="p">,</span><span class="n">use_pca</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">DePass.analyze_utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DePass.utils_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="n">plot_spatial</span><span class="p">(</span>
     <span class="n">adata</span><span class="p">,</span>
     <span class="n">color</span><span class="o">=</span><span class="s1">&#39;DePass&#39;</span><span class="p">,</span>
@@ -280,13 +278,13 @@ Model training finished!
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Tutorial%207%20Spatial%20Stereo-CITE-seq%20%28CRC%29.html" class="btn btn-neutral float-left" title="Tutorial 7: Spatial Stereo-CITE-seq (CRC)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Tutorial%209%20CITE-seq%20%28GSE163120%20KO4%29.html" class="btn btn-neutral float-right" title="Tutorial 9: CITE-seq (GSE163120 KO4)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Tutorial%209%20CITE-seq%20%28GSE163120%29.html" class="btn btn-neutral float-right" title="Tutorial 9: CITE-seq (GSE163120)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Zhang lab.</p>
+    <p>&#169; Copyright zhanglabNKU.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
