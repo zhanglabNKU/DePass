@@ -16,7 +16,7 @@ import anndata as ad
 from anndata import AnnData
 from scipy.stats import pearsonr
 
-mpl.rcParams['pdf.fonttype'] = 42
+# mpl.rcParams['pdf.fonttype'] = 42
 
 
 def plot_spatial(  
@@ -262,6 +262,19 @@ def rank_genes_groups(
     -------
     None
         The function runs DE analysis, produces a dot plot, and optionally saves it.
+
+
+    
+    Notes
+    -----
+    This function performs differential expression analysis on omics data.
+   
+    
+    You can use annotations or clustering results obtained from
+    ``DePass.utils.clustering`` as the grouping information to identify cluster-specific marker genes.
+
+
+
     """
     
 
@@ -1401,30 +1414,6 @@ def plot_modality_weights(
         Generates a violin plot showing modality weight distributions
         across clusters.
     """
-    mpl.rcParams.update({
-        'axes.edgecolor': 'black',
-        'axes.labelcolor': 'black',
-        'xtick.color': 'black',
-        'ytick.color': 'black',
-        'text.color': 'black'
-    })
-    mpl.rcParams['pdf.fonttype'] = 42
-
-    font_manager.fontManager.addfont('/home/jyx2/DePass-main/fonts/ARIAL.TTF')
-    font_manager.fontManager.addfont('/home/jyx2/DePass-main/fonts/ARIALBD.TTF')
-    plt.rcParams['font.family'] = 'Arial'
-
-    plt.rcParams.update({
-        'font.size': fontsize,
-        'axes.titlesize': fontsize,
-        'axes.labelsize': fontsize,
-        'xtick.labelsize': fontsize,
-        'ytick.labelsize': fontsize,
-        'legend.fontsize': fontsize - 4
-    })
-
-    sns.set_style("white")
-    sns.set_context("notebook")
 
     if "alpha" not in adata.obsm:
         raise KeyError("Missing modality weights in adata.obsm['alpha']")
