@@ -27,9 +27,9 @@ For detailed tutorials, you can refer to the following resources:
 ---
 
 
-## Downstream Tasks and Evaluations
+## Downstream tasks and evaluations
 
-We provide complete scripts for all downstream tasks and evaluations in the repository, organized as follows:
+We provide complete scripts for all downstream tasks and evaluations in this repository, structured as follows:
 
 - **Spatial niche inference**
 - **Cell-cell communication analysis**
@@ -37,7 +37,7 @@ We provide complete scripts for all downstream tasks and evaluations in the repo
 - **Omics data prediction**
 - **Enhancement evaluation**
 
-All scripts are available in the `scripts` directory:[Downstream Tasks and Evaluations](scripts).
+All scripts are available in the `scripts` directory:[Downstream scripts](scripts).
 
 ---
 
@@ -58,7 +58,7 @@ conda activate DePass
 ```bash
 git clone https://github.com/zhanglabNKU/DePass.git
 cd DePass
-pip install depass-0.0.26-py3-none-any.whl
+pip install DePass-0.0.25-py3-none-any.whl
 ```
 
 #### Additional Dependencies
