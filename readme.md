@@ -27,7 +27,7 @@ For detailed tutorials, you can refer to the following resources:
 ---
 
 
-## Downstream Tasks & Evaluations
+## Downstream Tasks and Evaluations
 
 We provide complete scripts for all downstream tasks and evaluations in the repository, organized as follows:
 
@@ -37,7 +37,7 @@ We provide complete scripts for all downstream tasks and evaluations in the repo
 - **Omics data prediction**
 - **Enhancement evaluation**
 
-All scripts are available in the `scripts` directory:[downstream scripts](scripts).
+All scripts are available in the `scripts` directory:[Downstream Tasks and Evaluations](scripts).
 
 ---
 

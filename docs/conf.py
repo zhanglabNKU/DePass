@@ -47,6 +47,22 @@ autodoc_mock_imports = [
     "torch_spline_conv",
     "rpy2",
     "mclust",
+    "torch.nn",
+    "torch.nn.functional",
+    "torchvision",
+    "numpy",
+    "scipy",
+    "pandas",
+    "sklearn",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "anndata",
+    "hnswlib",
+    "scanpy",
+    "seaborn",
+    "tqdm"
+
+
 ]
 
 
