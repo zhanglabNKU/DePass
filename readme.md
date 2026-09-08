@@ -37,7 +37,7 @@ We provide complete scripts for all downstream tasks and evaluations in this rep
 - **Omics data prediction**
 - **Enhancement evaluation**
 
-All scripts are available in the `scripts` directory:[Downstream scripts](scripts).
+All scripts are available in the `scripts` directory: [Downstream scripts](scripts).
 
 ---
 
@@ -46,7 +46,6 @@ All scripts are available in the `scripts` directory:[Downstream scripts](script
 #### It is preferred to create a new environment for DePass.
 
 ```bash
-# Create and activate a new conda environment
 conda create -n DePass python==3.8.20
 conda activate DePass
 ```
@@ -114,4 +113,4 @@ mclust
 
 ## Data
 
-The data used in this study are available at [Data](https://drive.google.com/drive/u/1/folders/1R_MhU9S1wCXDawPQm2Mxb98jz3KZPo9S).
+The data used in this study are available at [Data](https://zenodo.org/records/21736075).
