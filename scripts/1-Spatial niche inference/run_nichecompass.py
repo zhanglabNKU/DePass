@@ -28,6 +28,7 @@ from nichecompass.utils import (add_gps_from_gp_dict_to_adata,
                                 get_unique_genes_from_gp_dict)
 
 
+
 dataset = "depass"
 species = "mouse"
 spatial_key = "spatial"

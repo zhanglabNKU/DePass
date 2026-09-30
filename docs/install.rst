@@ -11,6 +11,7 @@ DePass Installation
 
 ----
 
+
 **Install DePass from GitHub**
 
 .. code-block:: bash

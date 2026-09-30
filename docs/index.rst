@@ -12,6 +12,7 @@ It flexibly supports diverse modality combinations.
 
 ----
 
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started

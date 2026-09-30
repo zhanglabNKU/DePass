@@ -99,6 +99,7 @@ def compute_domain_metrics(adata, domain_col="cell_type", norm="min-max"):
     return pd.DataFrame(results)
 
 
+
 def calculate_logfc(
     adata: AnnData,
     target_gene: str,

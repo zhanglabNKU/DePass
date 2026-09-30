@@ -18,7 +18,6 @@ from scButterfly.train_model_cite import Model
 from methods.utils import *
 from sklearn.model_selection import train_test_split
 
-
 parser = argparse.ArgumentParser(description='PyTorch Example')
 parser.add_argument('--batch_size', type=int, default=32, metavar='N',
                     help='input batch size for each GPU training (default: 16)')

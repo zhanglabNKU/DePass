@@ -37,7 +37,6 @@ from pytorchtools import EarlyStopping
 logging.basicConfig(level=logging.INFO)
 SAVEFIG_DPI = 1200
 
-
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--hidden", type=int, nargs="*", default=[16])

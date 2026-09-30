@@ -102,6 +102,7 @@ class DePassAE(Module):
         return results
 
 
+
 class DePassAE1(Module):
     def __init__(self, dim_input1, mlplayer1, dim, dropout=0.2, act='elu'):
         super(DePassAE1, self).__init__() 

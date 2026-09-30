@@ -5,6 +5,7 @@ from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 from torch_geometric.nn import HGTConv, GCNConv, GAE
 
+
 def get_activation(act):
         if act == 'relu':
             return nn.ReLU()

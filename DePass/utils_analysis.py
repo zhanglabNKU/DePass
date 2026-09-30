@@ -15,7 +15,6 @@ import scanpy as sc
 import anndata as ad
 from anndata import AnnData
 from scipy.stats import pearsonr
-
 # mpl.rcParams['pdf.fonttype'] = 42
 
 def plot_spatial(  

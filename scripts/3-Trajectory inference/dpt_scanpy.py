@@ -11,7 +11,6 @@ adata = sc.read('/home/jyx2/DePass-main/outputs/dataset_Spatial_Mux_seq/run/adat
 # adata = sc.read('/home/jyx2/DePass-main/outputs/dataset_Spatial_Mux_seq/run/adata_enhanced.h5ad')
 
 
-
 """
 We evaluated DePass on the mouse embryo dataset by performing pseudotime analysis 
 using both raw RNA data and DePass-enhanced RNA data, focusing on the radial glia (cluster 4) 

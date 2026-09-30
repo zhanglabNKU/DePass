@@ -7,6 +7,7 @@ import anndata
 import scanpy as sc
 import torch_geometric
 
+
 ############# Graph Construction #############
 
 def construct_knn_graph_hnsw(data: np.ndarray, k: int = 20, space: str = r'l2') -> torch.Tensor:

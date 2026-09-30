@@ -17,7 +17,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from anndata import AnnData
 from torch import zeros_like
-
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
 sys.path.append(project_root)
 from methods.utils import *

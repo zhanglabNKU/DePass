@@ -18,7 +18,6 @@ def setup_seed(seed):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
 
-    
 def select_feature_inter(adata_raw1,adata_raw2, hvg_num=3000):
         adata1 = adata_raw1.copy()
         adata2 = adata_raw2.copy()
