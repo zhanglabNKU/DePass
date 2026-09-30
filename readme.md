@@ -1,15 +1,13 @@
 
 # DePass
 
-[![python >3.8.20](https://img.shields.io/badge/python-3.8.20-blue)](https://www.python.org/) 
-
+[![python >3.8.20](https://img.shields.io/badge/python-3.8.20-blue)](https://www.python.org/)
 
 DePass is a dual-enhanced graph learning framework designed for integrated analysis of both single-cell and spatial paired multi-omics data. It flexibly supports diverse modality combinations.
 
-![alt text](docs/DePass.jpg)
+![DePass overview](docs/DePass.jpg)
 
-
-For more information, please refer to https://www.nature.com/articles/s41556-026-02067-8
+For more information, please refer to <https://www.nature.com/articles/s41556-026-02067-8>.
 
 ---
 
@@ -17,26 +15,21 @@ For more information, please refer to https://www.nature.com/articles/s41556-026
 
 For detailed tutorials, you can refer to the following resources:
 
-- **GitHub Repository**: [DePass Tutorials on GitHub](docs/Tutorials) 
-
-- **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)  
-
+- **GitHub Repository**: [DePass Tutorials on GitHub](docs/Tutorials)
+- **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)
 
 ---
 
 ## Installation
 
-
-
-#### It is preferred to create a new environment for DePass.
+### It is preferred to create a new environment for DePass.
 
 ```bash
 conda create -n DePass python==3.8.20
 conda activate DePass
 ```
 
-
-#### Install DePass from GitHub
+### Install DePass from GitHub
 
 ```bash
 git clone https://github.com/zhanglabNKU/DePass.git
@@ -44,31 +37,30 @@ cd DePass
 pip install DePass-0.0.25-py3-none-any.whl
 ```
 
-#### Additional Dependencies
+### Additional Dependencies
 
-Because DePass leverages `mclust` for clustering, installing R, the `rpy2` Python interface, and the `mclust` R package is recommended.
+DePass uses `mclust` for clustering. Therefore, installing R, the `rpy2` Python interface, and the `mclust` R package is recommended.
 
 ```bash
 conda install -c conda-forge r-base rpy2
 conda install conda-forge::r-mclust
 ```
 
+### Install PyTorch and PyTorch Geometric
 
-#### Install PyTorch and PyTorch Geometric
-please make sure that PyTorch and PyTorch Geometric are installed with versions that are compatible with your local CUDA version.
+Please make sure that PyTorch and PyTorch Geometric are installed with versions compatible with your local CUDA version.
+
 ```bash
 pip install torch==2.4.1
 pip install torch-geometric==2.3.1
 pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 ```
 
-#### The typical install time on a normal desktop computer should be less than 5 minutes.
+The typical installation time on a normal desktop computer should be less than 5 minutes.
 
 ---
 
 ## Requirements
-
-
 
 ```text
 anndata==0.11.4
@@ -94,10 +86,9 @@ jupyter
 mclust
 ```
 
-
 ---
-## Downstream tasks and evaluations
 
+## Downstream tasks and evaluations
 
 We provide complete scripts for all downstream tasks and evaluations in this repository, structured as follows:
 
@@ -110,13 +101,13 @@ We provide complete scripts for all downstream tasks and evaluations in this rep
 All scripts are available in the `scripts` directory: [Downstream scripts](scripts).
 
 ---
-## Data
 
+## Data
 
 The processed data used in this study are available at [Data](https://zenodo.org/records/21736075).
 
 ---
+
 ## Citation
 
-
-Li, W., Jiang, Y., Zhao, Q. et al. The dual-enhanced graph learning framework DePass allows paired data integration in single-cell and spatial multiomics. *Nat Cell Biol* (2026). https://doi.org/10.1038/s41556-026-02067-8
+Li, W., Jiang, Y., Zhao, Q. et al. The dual-enhanced graph learning framework DePass allows paired data integration in single-cell and spatial multiomics. *Nat Cell Biol* (2026). <https://doi.org/10.1038/s41556-026-02067-8>
