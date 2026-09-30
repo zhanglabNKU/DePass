@@ -10,6 +10,7 @@ import scipy
 import torch
 import scanpy as sc
 
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)

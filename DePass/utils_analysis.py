@@ -18,7 +18,6 @@ from scipy.stats import pearsonr
 
 # mpl.rcParams['pdf.fonttype'] = 42
 
-
 def plot_spatial(  
     adata: AnnData,
     color: str = 'DePass',  

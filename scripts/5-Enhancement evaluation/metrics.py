@@ -15,7 +15,6 @@ from anndata import AnnData
 
 
 
-
 def calculate_coefficient_of_variation(expr):
     expr = expr[~np.isnan(expr)]
     if len(expr) < 2:
@@ -98,7 +97,6 @@ def compute_domain_metrics(adata, domain_col="cell_type", norm="min-max"):
         results.extend(gene_domain_stats)
 
     return pd.DataFrame(results)
-
 
 
 def calculate_logfc(

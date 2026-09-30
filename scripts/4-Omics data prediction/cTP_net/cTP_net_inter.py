@@ -19,6 +19,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..
 sys.path.append(project_root)
 from methods.utils import *
 
+
 parser = argparse.ArgumentParser(description='PyTorch Example')
 parser.add_argument('--batch_size', type=int, default=100, metavar='N',
                     help='input batch size for each GPU training (default: 16)')

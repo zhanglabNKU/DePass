@@ -1,9 +1,5 @@
 
 # DePass
-<!-- <p align="left">
-  <img src=./docs/logo.png higth="100" width="200"/>
-</p> -->
-
 
 [![python >3.8.20](https://img.shields.io/badge/python-3.8.20-blue)](https://www.python.org/) 
 
@@ -11,6 +7,9 @@
 DePass is a dual-enhanced graph learning framework designed for integrated analysis of both single-cell and spatial paired multi-omics data. It flexibly supports diverse modality combinations.
 
 ![alt text](docs/DePass.jpg)
+
+
+For more information, please refer to https://www.nature.com/articles/s41556-026-02067-8
 
 ---
 
@@ -23,25 +22,11 @@ For detailed tutorials, you can refer to the following resources:
 - **Read the Docs**: [DePass Documentation](https://depass.readthedocs.io/en/latest/)  
 
 
-
 ---
 
+## Installation
 
-## Downstream tasks and evaluations
 
-We provide complete scripts for all downstream tasks and evaluations in this repository, structured as follows:
-
-- **Spatial niche inference**
-- **Cell-cell communication analysis**
-- **Trajectory inference**
-- **Omics data prediction**
-- **Enhancement evaluation**
-
-All scripts are available in the `scripts` directory: [Downstream scripts](scripts).
-
----
-
-## DePass Installation
 
 #### It is preferred to create a new environment for DePass.
 
@@ -50,7 +35,6 @@ conda create -n DePass python==3.8.20
 conda activate DePass
 ```
 
----
 
 #### Install DePass from GitHub
 
@@ -69,10 +53,9 @@ conda install -c conda-forge r-base rpy2
 conda install conda-forge::r-mclust
 ```
 
----
 
 #### Install PyTorch and PyTorch Geometric
-
+please make sure that PyTorch and PyTorch Geometric are installed with versions that are compatible with your local CUDA version.
 ```bash
 pip install torch==2.4.1
 pip install torch-geometric==2.3.1
@@ -80,10 +63,12 @@ pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https:
 ```
 
 #### The typical install time on a normal desktop computer should be less than 5 minutes.
+
 ---
 
-
 ## Requirements
+
+
 
 ```text
 anndata==0.11.4
@@ -109,8 +94,29 @@ jupyter
 mclust
 ```
 
----
 
+---
+## Downstream tasks and evaluations
+
+
+We provide complete scripts for all downstream tasks and evaluations in this repository, structured as follows:
+
+- **Spatial niche inference**
+- **Cell-cell communication analysis**
+- **Trajectory inference**
+- **Omics data prediction**
+- **Enhancement evaluation**
+
+All scripts are available in the `scripts` directory: [Downstream scripts](scripts).
+
+---
 ## Data
 
-The data used in this study are available at [Data](https://zenodo.org/records/21736075).
+
+The processed data used in this study are available at [Data](https://zenodo.org/records/21736075).
+
+---
+## Citation
+
+
+Li, W., Jiang, Y., Zhao, Q. et al. The dual-enhanced graph learning framework DePass allows paired data integration in single-cell and spatial multiomics. *Nat Cell Biol* (2026). https://doi.org/10.1038/s41556-026-02067-8
